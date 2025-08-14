@@ -17,3 +17,6 @@ ghdl -a ./Blinkers/top_blink_b.vhd
 ghdl -e CustomWrapper
 ```
 
+# See Also
+## [moku-vhdl-dev-workspace](https://github.com/sealablab/moku-vhdl-dev-workspace)
+
