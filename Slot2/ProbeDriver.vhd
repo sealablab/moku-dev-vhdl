@@ -14,6 +14,7 @@ entity probe_driver is
   port (
     clk        : in  std_logic;
     reset      : in  std_logic;
+    enable     : in  std_logic;
     trig_in    : in  std_logic;
    
     -- Begin Probe Driver 'API'
@@ -35,19 +36,17 @@ architecture rtl of probe_driver is
   -- Constants - Configuration values for the probe driver
   constant ProbeMinDuration : unsigned(15 downto 0) := to_unsigned(2, 16);      -- Minimum pulse duration (clock cycles)
   constant ProbeMaxDuration : unsigned(15 downto 0) := to_unsigned(32, 16);     -- Maximum pulse duration (clock cycles)  
-  constant ProbeCoolDown    : unsigned(15 downto 0) := to_unsigned(16, 16);     -- Default cooldown period (clock cycles)
-  
+  constant ProbeCoolDown    : unsigned(15 downto 0) := to_unsigned(4, 16);      -- Probe cool down period (clock cycles) 
   -- Type definitions
   type intensity_lut_type is array (0 to 100) of signed(15 downto 0);
   
   -- Signal declarations
   signal PulseDuration : unsigned(15 downto 0);  -- 16 bits for up to 65,535 cycles (~2.1 ms)
   signal CoolDown : unsigned(31 downto 0);       -- 32 bits for up to 4,294,967,295 cycles (~137 seconds)
-  signal enable : std_logic;
   signal cnt    : signed(15 downto 0) := (others => '0');
   
   -- State machine signals
-  type state_type is (IDLE, ARMED, FIRING, FIRED, EXPIRED, COOL_DOWN);
+  type state_type is (IDLE, ARMED, FIRING, FIRED, COOL_DOWN);
   signal current_state : state_type := IDLE;
   
   -- Timing counters
@@ -63,7 +62,6 @@ architecture rtl of probe_driver is
 -- BEGIN - Main logic starts here
 -- =============================================================================
 begin
-  enable <= '1'; -- Always enabled for now
 
 -- =============================================================================
 -- CLOCKED PROCESS - State machine and timing logic
@@ -88,6 +86,7 @@ begin
         clamped_intensity <= to_integer(unsigned(Intensity_in));
       else
         clamped_intensity <= 100;
+        -- TODO: We should track / count the number of times we've exceeded the maximum intensity
       end if;
       
       -- Calculate effective duration (max of PulseDuration and ProbeMinDuration)
@@ -135,10 +134,6 @@ begin
             cooldown_counter <= cooldown_counter + 1;
           end if;
           
-        when EXPIRED =>
-          -- Safety timeout, return to IDLE
-          current_state <= IDLE;
-          
         when others =>
           current_state <= IDLE;
       end case;
@@ -161,5 +156,6 @@ end process;
                    IntensityLut(0);                                                 -- Zero intensity otherwise
 
 end architecture; 
+
 
 

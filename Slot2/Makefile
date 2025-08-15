@@ -6,9 +6,11 @@ GHDL = ghdl
 GHDL_FLAGS = --std=08 --ieee=synopsys
 
 # Source files (in compilation order)
+WRAPPER = CustomWrapper.vhd
 PACKAGE = IntensityLut.vhd
-MAIN = Slot2-ProbeDriver.vhd
-SOURCES = $(PACKAGE) $(MAIN)
+MAIN = ProbeDriver.vhd
+TOP = top_probe_driver.vhd
+SOURCES = $(WRAPPER) $(PACKAGE) $(MAIN) $(TOP)
 
 # Default target
 all: syntax_check
@@ -18,10 +20,14 @@ syntax_check: $(SOURCES)
 	@echo "=========================================="
 	@echo "Checking VHDL syntax..."
 	@echo "=========================================="
+	$(GHDL) -a $(GHDL_FLAGS) $(WRAPPER)
+	@echo "✓ Wrapper compiled successfully"
 	$(GHDL) -a $(GHDL_FLAGS) $(PACKAGE)
 	@echo "✓ Package compiled successfully"
 	$(GHDL) -a $(GHDL_FLAGS) $(MAIN)
 	@echo "✓ Main file compiled successfully"
+	$(GHDL) -a $(GHDL_FLAGS) $(TOP)
+	@echo "✓ Top-level file compiled successfully"
 	@echo "=========================================="
 	@echo "All files compiled successfully!"
 	@echo "=========================================="
@@ -35,6 +41,13 @@ check_main:
 	@echo "Checking main file syntax..."
 	$(GHDL) -a $(GHDL_FLAGS) $(PACKAGE)
 	$(GHDL) -a $(GHDL_FLAGS) $(MAIN)
+
+check_top:
+	@echo "Checking top-level file syntax..."
+	$(GHDL) -a $(GHDL_FLAGS) $(WRAPPER)
+	$(GHDL) -a $(GHDL_FLAGS) $(PACKAGE)
+	$(GHDL) -a $(GHDL_FLAGS) $(MAIN)
+	$(GHDL) -a $(GHDL_FLAGS) $(TOP)
 
 # Clean up generated files
 clean:
@@ -58,4 +71,4 @@ help:
 	@echo "  make clean             # Clean up"
 
 # Phony targets (don't represent actual files)
-.PHONY: all syntax_check check_package check_main clean help
+.PHONY: all syntax_check check_package check_main check_top clean help
