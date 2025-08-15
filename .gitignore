@@ -1,4 +1,21 @@
-### vhdl / ghdl 
+### VHDL / GHDL Build Artifacts
 *.o
+*.cf
 work-obj93.cf
+work-obj08.cf
+work-obj87.cf
+*.vcd
+*.ghw
+*.fst
+*.lxt
+*.vst
+*.vcd.gz
+*.ghw.gz
+*.fst.gz
+*.lxt.gz
+*.vst.gz
+
+# GHDL specific
+ghdl_work/
+work/
 
