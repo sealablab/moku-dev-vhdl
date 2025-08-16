@@ -55,7 +55,7 @@ architecture Behavioural of CustomWrapper is
     constant ProbeTrigger_Threshold : signed(15 downto 0) := x"4000";  -- 2.5V threshold
     
     -- Internal signals for probe driver outputs
-    signal probe_trig_out : std_logic;
+    signal probe_trig_out : signed(15 downto 0);
     signal probe_intensity_out : signed(15 downto 0);
     -- ProbeDriverStatusRegister (PDSR)
     signal probe_driver_status_register : std_logic_vector(4 downto 0);    
@@ -83,10 +83,10 @@ begin
     -- OUTPUT ASSIGNMENTS
     -- =============================================================================
     -- OutputA: Show probe trigger threshold when probe is firing, otherwise show intensity
-    OutputA <= ProbeTrigger_Threshold when probe_trig_out = '1' else probe_intensity_out;
+    OutputA <= ProbeTrigger_Threshold when probe_trig_out = ProbeTrigger_Threshold else probe_intensity_out;
     
     -- OutputB: Show probe intensity when firing, otherwise zero
-    OutputB <= probe_intensity_out when probe_trig_out = '1' else (others => '0');
+    OutputB <= probe_intensity_out when probe_trig_out = ProbeTrigger_Threshold else (others => '0');
     -- OutputC: This will echo the  ProbeDriverStatusRegister (PDSR) to DIO-OUT 
     OutputC <= signed(Control0(15 downto 0));
 
