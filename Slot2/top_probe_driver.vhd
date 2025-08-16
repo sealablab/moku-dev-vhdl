@@ -24,9 +24,16 @@ begin
     u_probe_driver: entity work.probe_driver
         port map (
             clk            => Clk,
-            reset          => Reset,
-            enable         => Control0(31),                    -- Topmost bit of Control0 set to enable
-            trig_in        => Control0(0),                     -- Use control0(0) as trigger input
+
+            -- Control signals using Control0 bits
+            reset          => Control0(15),                    -- Reset signal
+            enable         => Control0(14),                    -- Enable signal
+            trig_in        => Control0(13),                    -- Trigger input signal
+
+
+
+
+
             -- Module specific
             Intensity_index   => Control1(7 downto 0),        -- 8 bit index
             PulseDuration_in  => Control2(31 downto 0),       -- 32-bit pulse duration from control2
