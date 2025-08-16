@@ -19,3 +19,33 @@ work-obj87.cf
 ghdl_work/
 work/
 
+### Editor and IDE Files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+### Compiled Executables
+probedriver_tb
+simple_tb
+*_tb
+
+### Temporary and Backup Files
+*.tmp
+*.bak
+*.backup
+*.orig
+
+### Log Files
+*.log
+*.out
+
+### Platform-specific
+.vscode/
+.idea/
+*.user
+*.suo
+*.sdf
+*.jou
+
