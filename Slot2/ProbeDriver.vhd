@@ -24,7 +24,8 @@ entity probe_driver is
     CoolDown_in       : in  std_logic_vector(31 downto 0);
     -- Note: These output registers are only written during Reset.
     trig_out         : out std_logic;
-    intensity_out    : out signed(15 downto 0)
+    intensity_out    : out signed(15 downto 0);
+    status_register  : out std_logic_vector(4 downto 0)
     -- End Probe Driver 'API'
   );
 end entity;
@@ -57,6 +58,9 @@ architecture rtl of probe_driver is
   signal effective_duration : unsigned(15 downto 0);
   signal Intensity : unsigned(7 downto 0);
   signal clamped_intensity : integer range 0 to 100;
+  
+  -- Status register
+  signal status_reg : std_logic_vector(4 downto 0);
 
 -- =============================================================================
 -- BEGIN - Main logic starts here
@@ -75,6 +79,7 @@ begin
       pulse_counter <= (others => '0');
       cooldown_counter <= (others => '0');
       cnt <= (others => '0');
+      status_reg <= (others => '0');  -- Initialize status register to 0
       
       -- Load input values during reset
       PulseDuration <= unsigned(PulseDuration_in(15 downto 0));
@@ -162,6 +167,9 @@ end process;
   -- Intensity output based on state and user input
   intensity_out <= IntensityLut(clamped_intensity) when current_state = FIRING else  -- User-specified intensity when firing
                    IntensityLut(0);                                                 -- Zero intensity otherwise
+                   
+  -- Status register output
+  status_register <= status_reg;
 
 end architecture; 
 

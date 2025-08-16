@@ -75,7 +75,8 @@ begin
             PulseDuration_in  => Control2(31 downto 0),       -- 32-bit pulse duration from control2
             CoolDown_in       => Control3(31 downto 0),       -- 32-bit cooldown from control3
             trig_out          => probe_trig_out,               -- Capture trigger output
-            intensity_out     => probe_intensity_out            -- Capture intensity output
+            intensity_out     => probe_intensity_out,          -- Capture intensity output
+            status_register   => probe_driver_status_register  -- Capture status register
         );
     
     -- =============================================================================
