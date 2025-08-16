@@ -7,47 +7,6 @@ use IEEE.Numeric_Std.all;
 use work.IntensityLut_pkg.all;
 
 -- =============================================================================
--- ENTITY - Port definitions for CustomWrapper
--- =============================================================================
-entity CustomWrapper is  
-    port (  
-        -- Clock and Reset
-        Clk : in std_logic;      
-        Reset : in std_logic;    
-  
-        -- Input signals (Platform-specific usage)
-        InputA : in signed(15 downto 0);   
-        InputB : in signed(15 downto 0);   
-        InputC : in signed(15 downto 0);   
-        InputD : in signed(15 downto 0);   
-  
-        -- Output signals (Platform-specific usage)
-        OutputA : out signed(15 downto 0);  
-        OutputB : out signed(15 downto 0);  
-        OutputC : out signed(15 downto 0);  
-        OutputD : out signed(15 downto 0);  
-  
-        -- Control registers (32-bit each)
-        Control0  : in std_logic_vector(31 downto 0);   
-        Control1  : in std_logic_vector(31 downto 0);   
-        Control2  : in std_logic_vector(31 downto 0);   
-        Control3  : in std_logic_vector(31 downto 0);   
-        Control4  : in std_logic_vector(31 downto 0);   
-        Control5  : in std_logic_vector(31 downto 0);   
-        Control6  : in std_logic_vector(31 downto 0);   
-        Control7  : in std_logic_vector(31 downto 0);   
-        Control8  : in std_logic_vector(31 downto 0);   
-        Control9  : in std_logic_vector(31 downto 0);   
-        Control10 : in std_logic_vector(31 downto 0);   
-        Control11 : in std_logic_vector(31 downto 0);   
-        Control12 : in std_logic_vector(31 downto 0);   
-        Control13 : in std_logic_vector(31 downto 0);   
-        Control14 : in std_logic_vector(31 downto 0);   
-        Control15 : in std_logic_vector(31 downto 0)    
-    );
-end entity CustomWrapper;
-
--- =============================================================================
 -- ARCHITECTURE - Implementation that instantiates probe_driver
 -- =============================================================================
 architecture Behavioural of CustomWrapper is
@@ -87,7 +46,7 @@ begin
     
     -- OutputB: Show probe intensity when firing, otherwise zero
     OutputB <= probe_intensity_out when probe_trig_out = ProbeTrigger_Threshold else (others => '0');
-    -- OutputC: This will echo the  ProbeDriverStatusRegister (PDSR) to DIO-OUT 
-    OutputC <= signed(Control0(15 downto 0));
+    -- OutputC: Echo back Control0(15:0), Control1(7:0), 3 zeros, and status register
+    OutputC <= signed(Control0(15 downto 0) & Control1(7 downto 0) & "000" & probe_driver_status_register);
 
 end architecture Behavioural;
