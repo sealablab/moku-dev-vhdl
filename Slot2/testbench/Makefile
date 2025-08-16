@@ -9,7 +9,7 @@ GHDL_FLAGS = --std=08 --ieee=synopsys
 TB_FILE = ProbeDriver_tb.vhd
 
 # DUT files (need to be compiled first)
-DUT_FILES = ../IntensityLut.vhd ../ProbeDriver.vhd
+DUT_FILES = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
 
 # Target for running the testbench
 all: compile run

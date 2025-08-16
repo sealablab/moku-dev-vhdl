@@ -1,36 +1,31 @@
-# Makefile for Slot2 Probe Driver VHDL Project
-# Uses GHDL for VHDL compilation and syntax checking
+# Slot2/Makefile
+# Build system for Slot2 VHDL files
 
-# Compiler and flags
+# GHDL compiler and flags
 GHDL = ghdl
 GHDL_FLAGS = --std=08 --ieee=synopsys
 
-# Source files (in compilation order)
-WRAPPER = CustomWrapper.vhd
-PACKAGE = IntensityLut.vhd
-MAIN = ProbeDriver.vhd
-TOP = top_probe_driver.vhd
-SOURCES = $(WRAPPER) $(PACKAGE) $(MAIN) $(TOP)
+# Source files in dependency order
+SOURCES = IntensityLut.vhd ProbeConfig.vhd ProbeDriver.vhd CustomWrapper.vhd top_probe_driver.vhd
 
-# Default target
-all: syntax_check
-
-# Check syntax of all VHDL files
+# Target for syntax checking
 syntax_check: $(SOURCES)
-	@echo "=========================================="
+	@echo "========================================"
 	@echo "Checking VHDL syntax..."
-	@echo "=========================================="
-	$(GHDL) -a $(GHDL_FLAGS) $(WRAPPER)
-	@echo "✓ Wrapper compiled successfully"
-	$(GHDL) -a $(GHDL_FLAGS) $(PACKAGE)
-	@echo "✓ Package compiled successfully"
-	$(GHDL) -a $(GHDL_FLAGS) $(MAIN)
-	@echo "✓ Main file compiled successfully"
-	$(GHDL) -a $(GHDL_FLAGS) $(TOP)
-	@echo "✓ Top-level file compiled successfully"
-	@echo "=========================================="
+	@echo "========================================"
+	@for file in $(SOURCES); do \
+		echo "ghdl -a --std=08 --ieee=synopsys $$file"; \
+		$(GHDL) -a $(GHDL_FLAGS) $$file; \
+		if [ $$? -eq 0 ]; then \
+			echo "✓ $$(basename $$file .vhd) compiled successfully"; \
+		else \
+			echo "✗ $$(basename $$file .vhd) compilation failed"; \
+			exit 1; \
+		fi; \
+	done
+	@echo "========================================"
 	@echo "All files compiled successfully!"
-	@echo "=========================================="
+	@echo "========================================"
 
 # Check syntax of individual files
 check_package:

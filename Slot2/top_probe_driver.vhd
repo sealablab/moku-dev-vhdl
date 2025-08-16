@@ -5,14 +5,12 @@ library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.IntensityLut_pkg.all;
+use work.ProbeConfig_pkg.all;
 
 -- =============================================================================
 -- ARCHITECTURE - Implementation that instantiates probe_driver
 -- =============================================================================
 architecture Behavioural of CustomWrapper is
-    -- Constants
-    constant ProbeTrigger_Threshold : signed(15 downto 0) := x"4000";  -- 2.5V threshold
-    
     -- Internal signals for probe driver outputs
     signal probe_trig_out : signed(15 downto 0);
     signal probe_intensity_out : signed(15 downto 0);
@@ -47,6 +45,8 @@ begin
     -- OutputB: Show probe intensity when firing, otherwise zero
     OutputB <= probe_intensity_out when probe_trig_out = ProbeTrigger_Threshold else (others => '0');
     -- OutputC: Echo back Control0(15:0), Control1(7:0), 3 zeros, and status register
-    OutputC <= signed(Control0(15 downto 0) & Control1(7 downto 0) & "000" & probe_driver_status_register);
+    -- Note: OutputC is 16 bits, so we select the most relevant portion
+    -- Include Control0(10:0) and status register for meaningful 16-bit output
+    OutputC <= signed(Control0(10 downto 0) & probe_driver_status_register);
 
 end architecture Behavioural;

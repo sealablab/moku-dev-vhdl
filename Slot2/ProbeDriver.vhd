@@ -6,6 +6,7 @@ library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.IntensityLut_pkg.all;
+use work.ProbeConfig_pkg.all;
 
 -- =============================================================================
 -- ENTITY - Port definitions (inputs and outputs)
@@ -34,11 +35,6 @@ end entity;
 -- ARCHITECTURE - Implementation details
 -- =============================================================================
 architecture rtl of probe_driver is
-  -- Constants - Configuration values for the probe driver
-  constant ProbeTrigger_Threshold : signed(15 downto 0) := x"4000";  -- 2.5V threshold constant
-  constant ProbeMinDuration : unsigned(15 downto 0) := to_unsigned(2, 16);      -- Minimum pulse duration (clock cycles)
-  constant ProbeMaxDuration : unsigned(15 downto 0) := to_unsigned(32, 16);     -- Maximum pulse duration (clock cycles)  
-  constant ProbeCoolDownMin : unsigned(31 downto 0) := to_unsigned(1, 32);      -- Probe cool down period (clock cycles)
   -- Type definitions
   type intensity_lut_type is array (0 to 100) of signed(15 downto 0);
   
@@ -96,11 +92,11 @@ begin
       Intensity <= unsigned(Intensity_index);
       
       -- Clamp intensity to valid range (0-100) for lookup table
-      if to_integer(unsigned(Intensity_index)) <= 100 then
+      if to_integer(unsigned(Intensity_index)) <= ProbeIntensityMax then
         clamped_intensity <= to_integer(unsigned(Intensity_index  ));
         intensity_error <= '0';  -- No error
       else
-        clamped_intensity <= 100;
+        clamped_intensity <= ProbeIntensityMax;
         intensity_error <= '1';  -- Error: exceeded maximum intensity
         -- TODO: We should track / count the number of times we've exceeded the maximum intensity
       end if;
