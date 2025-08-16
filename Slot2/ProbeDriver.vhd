@@ -19,7 +19,7 @@ entity probe_driver is
    
     -- Begin Probe Driver 'API'
     -- Note: These input registers are only read during Reset.
-    Intensity_in      : in  std_logic_vector(8 downto 0);
+    Intensity_index      : in  std_logic_vector(7 downto 0);
     PulseDuration_in  : in  std_logic_vector(31 downto 0);
     CoolDown_in       : in  std_logic_vector(31 downto 0);
     -- Note: These output registers are only written during Reset.
@@ -36,7 +36,7 @@ architecture rtl of probe_driver is
   -- Constants - Configuration values for the probe driver
   constant ProbeMinDuration : unsigned(15 downto 0) := to_unsigned(2, 16);      -- Minimum pulse duration (clock cycles)
   constant ProbeMaxDuration : unsigned(15 downto 0) := to_unsigned(32, 16);     -- Maximum pulse duration (clock cycles)  
-  constant ProbeCoolDown    : unsigned(15 downto 0) := to_unsigned(4, 16);      -- Probe cool down period (clock cycles) 
+  constant ProbeCoolDownMin : unsigned(15 downto 0) := to_unsigned(1, 16);      -- Probe cool down period (clock cycles) 
   -- Type definitions
   type intensity_lut_type is array (0 to 100) of signed(15 downto 0);
   
@@ -79,11 +79,11 @@ begin
       -- Load input values during reset
       PulseDuration <= unsigned(PulseDuration_in(15 downto 0));
       CoolDown <= unsigned(CoolDown_in);
-      Intensity <= unsigned(Intensity_in);
+      Intensity <= unsigned(Intensity_index);
       
       -- Clamp intensity to valid range (0-100) for lookup table
-      if to_integer(unsigned(Intensity_in)) <= 100 then
-        clamped_intensity <= to_integer(unsigned(Intensity_in));
+      if to_integer(unsigned(Intensity_index)) <= 100 then
+        clamped_intensity <= to_integer(unsigned(Intensity_index  ));
       else
         clamped_intensity <= 100;
         -- TODO: We should track / count the number of times we've exceeded the maximum intensity
@@ -96,8 +96,16 @@ begin
         effective_duration <= ProbeMinDuration;
         -- TODO: We should track / count the number of times we've exceeded the minimum duration
       end if;
+      
+      -- Calculate effective cooldown (max of CoolDown_in and ProbeCoolDownMin)
+      if unsigned(CoolDown_in(15 downto 0)) > ProbeCoolDownMin then
+        CoolDown <= unsigned(CoolDown_in(15 downto 0));
+      else
+        CoolDown <= unsigned(ProbeCoolDownMin);
+        -- TODO: We should track / count the number of times we've exceeded the minimum cooldown
+      end if;
     else
-      -- State machine logic
+      -- State machine logic ------------------------------------------------------
       case current_state is
         when IDLE =>
           -- Wait for enable signal

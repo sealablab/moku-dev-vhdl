@@ -62,12 +62,15 @@ help:
 	@echo "  syntax_check  - Check syntax of all files"
 	@echo "  check_package - Check only the package file"
 	@echo "  check_main    - Check only the main file"
+	@echo "  check_top     - Check only the top-level file"
 	@echo "  clean         - Remove generated files"
 	@echo "  help          - Show this help message"
 	@echo ""
 	@echo "Usage examples:"
 	@echo "  make                    # Check all files"
 	@echo "  make check_package      # Check only package"
+	@echo "  make check_main         # Check only main file"
+	@echo "  make check_top          # Check only top-level file"
 	@echo "  make clean             # Clean up"
 
 # Phony targets (don't represent actual files)
