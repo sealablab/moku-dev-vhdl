@@ -38,13 +38,13 @@ architecture rtl of probe_driver is
   constant ProbeTrigger_Threshold : signed(15 downto 0) := x"4000";  -- 2.5V threshold constant
   constant ProbeMinDuration : unsigned(15 downto 0) := to_unsigned(2, 16);      -- Minimum pulse duration (clock cycles)
   constant ProbeMaxDuration : unsigned(15 downto 0) := to_unsigned(32, 16);     -- Maximum pulse duration (clock cycles)  
-  constant ProbeCoolDownMin : unsigned(15 downto 0) := to_unsigned(1, 16);      -- Probe cool down period (clock cycles) 
+  constant ProbeCoolDownMin : unsigned(31 downto 0) := to_unsigned(1, 32);      -- Probe cool down period (clock cycles)
   -- Type definitions
   type intensity_lut_type is array (0 to 100) of signed(15 downto 0);
   
   -- Signal declarations
   signal PulseDuration : unsigned(15 downto 0);  -- 16 bits for up to 65,535 cycles (~2.1 ms)
-  signal CoolDown : unsigned(31 downto 0);       -- 32 bits for up to 4,294,967,295 cycles (~137 seconds)
+  signal CoolDown : unsigned(31 downto 0) := (others => '0');       -- 32 bits for up to 4,294,967,295 cycles (~137 seconds)
   signal cnt    : signed(15 downto 0) := (others => '0');
   
   -- State machine signals
@@ -58,10 +58,10 @@ architecture rtl of probe_driver is
   -- Control signals
   signal effective_duration : unsigned(15 downto 0);
   signal Intensity : unsigned(7 downto 0);
-  signal clamped_intensity : integer range 0 to 100;
+  signal clamped_intensity : integer range 0 to 100 := 0;  -- Initialize to 0
   
   -- Status register
-  signal status_reg : std_logic_vector(4 downto 0);
+  signal status_reg : std_logic_vector(4 downto 0) := (others => '0');
   
   -- Error tracking signals
   signal intensity_error : std_logic := '0';
@@ -116,11 +116,11 @@ begin
       end if;
       
       -- Calculate effective cooldown (max of CoolDown_in and ProbeCoolDownMin)
-      if unsigned(CoolDown_in(15 downto 0)) > ProbeCoolDownMin then
-        CoolDown <= unsigned(CoolDown_in(15 downto 0));
+      if CoolDown_in > std_logic_vector(ProbeCoolDownMin) then
+        CoolDown <= unsigned(CoolDown_in);
         cooldown_error <= '0';  -- No error
       else
-        CoolDown <= unsigned(ProbeCoolDownMin);
+        CoolDown <= ProbeCoolDownMin;
         cooldown_error <= '1';  -- Error: exceeded minimum cooldown
         -- TODO: We should track / count the number of times we've exceeded the minimum cooldown
       end if;
@@ -139,7 +139,7 @@ begin
           if enable = '1' then
             current_state <= ARMED;
             pulse_counter <= (others => '0');
-            status_reg <= status_reg or "00001";  -- Set bit 0 when entering ARMED
+            status_reg(0) <= '1';  -- Set bit 0 when entering ARMED
           end if;
           
         when ARMED =>
@@ -147,7 +147,7 @@ begin
           if trig_in = '1' then
             current_state <= FIRING;
             pulse_counter <= (others => '0'); -- Start counting up from 0
-            status_reg <= status_reg or "00010";  -- Set bit 1 when entering FIRING
+            status_reg(1) <= '1';  -- Set bit 1 when entering FIRING
           end if;
           
         when FIRING =>
@@ -155,7 +155,7 @@ begin
           if pulse_counter >= effective_duration then
             current_state <= FIRED;
             cooldown_counter <= (others => '0');
-            status_reg <= status_reg or "00100";  -- Set bit 2 when entering FIRED
+            status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
           else
             pulse_counter <= pulse_counter + 1;
           end if;
@@ -163,7 +163,7 @@ begin
         when FIRED =>
           -- Pulse completed, start cooldown
           current_state <= COOL_DOWN;
-          status_reg <= status_reg or "01000";  -- Set bit 3 when entering COOL_DOWN
+          status_reg(3) <= '1';  -- Set bit 3 when entering COOL_DOWN
           
         when COOL_DOWN =>
           -- Wait for cooldown period
@@ -191,7 +191,7 @@ end process;
   trig_out <= ProbeTrigger_Threshold when current_state = FIRING else (others => '0');
   
   -- Intensity output based on state and user input
-  intensity_out <= IntensityLut(clamped_intensity) when current_state = FIRING else  -- User-specified intensity when firing
+  intensity_out <= IntensityLut(clamped_intensity) when current_state = FIRING and clamped_intensity >= 0 and clamped_intensity <= 100 else  -- User-specified intensity when firing
                    IntensityLut(0);                                                 -- Zero intensity otherwise
                    
   -- Status register output
