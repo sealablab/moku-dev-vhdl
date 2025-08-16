@@ -117,6 +117,7 @@ begin
           if enable = '1' then
             current_state <= ARMED;
             pulse_counter <= (others => '0');
+            status_reg <= status_reg or "00001";  -- Set bit 0 when entering ARMED
           end if;
           
         when ARMED =>
@@ -124,6 +125,7 @@ begin
           if trig_in = '1' then
             current_state <= FIRING;
             pulse_counter <= (others => '0'); -- Start counting up from 0
+            status_reg <= status_reg or "00010";  -- Set bit 1 when entering FIRING
           end if;
           
         when FIRING =>
@@ -131,6 +133,7 @@ begin
           if pulse_counter >= effective_duration then
             current_state <= FIRED;
             cooldown_counter <= (others => '0');
+            status_reg <= status_reg or "00100";  -- Set bit 2 when entering FIRED
           else
             pulse_counter <= pulse_counter + 1;
           end if;
@@ -138,6 +141,7 @@ begin
         when FIRED =>
           -- Pulse completed, start cooldown
           current_state <= COOL_DOWN;
+          status_reg <= status_reg or "01000";  -- Set bit 3 when entering COOL_DOWN
           
         when COOL_DOWN =>
           -- Wait for cooldown period
