@@ -107,33 +107,33 @@ architecture rtl of SlotBlinker is
 
 begin
   -- Parse Control Register 0: Global Control & Timing
-  enable         <= not control0(31);           -- Enable (active-low)
+  enable         <= control0(31);               -- Enable (active-high)
   soft_reset     <= control0(30);               -- Software reset
   sign_control   <= control0(29);               -- Sign control (0=unsigned, 1=signed)
-  global_divider <= unsigned(control0(28 downto 24)); -- Global clock divider (1-32)
+  global_divider <= unsigned(control0(28 downto 24)) when unsigned(control0(28 downto 24)) > 0 else "00001"; -- Global clock divider (1-32, default 1)
   pattern_sel    <= control0(23 downto 16);     -- Pattern selector
   
   -- Parse Control Register 1: Output A Configuration
-  freq_div_a     <= unsigned(control1(31 downto 24)); -- Frequency divider (1-256)
-  amp_scale_a    <= unsigned(control1(23 downto 16)); -- Amplitude scale (0-255)
+  freq_div_a     <= unsigned(control1(31 downto 24)) when unsigned(control1(31 downto 24)) > 0 else "00000001"; -- Frequency divider (1-256, default 1)
+  amp_scale_a    <= unsigned(control1(23 downto 16)) when unsigned(control1(23 downto 16)) > 0 else "11111111"; -- Amplitude scale (0-255, default 100%)
   pattern_type_a <= control1(15 downto 8);      -- Pattern type (0-255)
   phase_offset_a <= unsigned(control1(7 downto 0));   -- Phase offset (0-255)
   
   -- Parse Control Register 2: Output B Configuration
-  freq_div_b     <= unsigned(control2(31 downto 24)); -- Frequency divider (1-256)
-  amp_scale_b   <= unsigned(control2(23 downto 16)); -- Amplitude scale (0-255)
+  freq_div_b     <= unsigned(control2(31 downto 24)) when unsigned(control2(31 downto 24)) > 0 else "00000100"; -- Frequency divider (1-256, default 4)
+  amp_scale_b   <= unsigned(control2(23 downto 16)) when unsigned(control2(23 downto 16)) > 0 else "11111111"; -- Amplitude scale (0-255, default 100%)
   pattern_type_b <= control2(15 downto 8);      -- Pattern type (0-255)
   phase_offset_b <= unsigned(control2(7 downto 0));   -- Phase offset (0-255)
   
   -- Parse Control Register 3: Output C Configuration
-  freq_div_c     <= unsigned(control3(31 downto 24)); -- Frequency divider (1-256)
-  amp_scale_c   <= unsigned(control3(23 downto 16)); -- Amplitude scale (0-255)
+  freq_div_c     <= unsigned(control3(31 downto 24)) when unsigned(control3(31 downto 24)) > 0 else "00010000"; -- Frequency divider (1-256, default 16)
+  amp_scale_c   <= unsigned(control3(23 downto 16)) when unsigned(control3(23 downto 16)) > 0 else "11111111"; -- Amplitude scale (0-255, default 100%)
   pattern_type_c <= control3(15 downto 8);      -- Pattern type (0-255)
   phase_offset_c <= unsigned(control3(7 downto 0));   -- Phase offset (0-255)
   
   -- Parse Control Register 4: Output D Configuration
-  freq_div_d     <= unsigned(control4(31 downto 24)); -- Frequency divider (1-256)
-  amp_scale_d   <= unsigned(control4(23 downto 16)); -- Amplitude scale (0-255)
+  freq_div_d     <= unsigned(control4(31 downto 24)) when unsigned(control4(31 downto 24)) > 0 else "01000000"; -- Frequency divider (1-256, default 64)
+  amp_scale_d   <= unsigned(control4(23 downto 16)) when unsigned(control4(23 downto 16)) > 0 else "11111111"; -- Amplitude scale (0-255, default 100%)
   pattern_type_d <= control4(15 downto 8);      -- Pattern type (0-255)
   phase_offset_d <= unsigned(control4(7 downto 0));   -- Phase offset (0-255)
   
