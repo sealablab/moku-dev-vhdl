@@ -1,6 +1,6 @@
 # Enhanced SlotBlinker
 
-A configurable, feature-rich bitstream that generates distinct wave patterns on all four outputs (OutputA, OutputB, OutputC, OutputD) with comprehensive control over timing, patterns, amplitude, and phase.
+A configurable, feature-rich bitstream that generates distinct wave patterns on all four outputs (OutputA, OutputB, OutputC, OutputD) with comprehensive control over timing, patterns, amplitude, and phase. **Pipelined architecture ensures timing closure.**
 
 ## 🚀 **New Features**
 
@@ -12,6 +12,7 @@ A configurable, feature-rich bitstream that generates distinct wave patterns on 
 - **Amplitude Scaling**: 0-100% amplitude control per output
 - **Phase Offsets**: Stagger outputs for complex patterns
 - **Software Reset**: Reset system without reloading bitstream
+- **Pipelined Architecture**: **3-stage pipeline for timing closure**
 
 ## 🎯 **Purpose**
 
@@ -47,6 +48,30 @@ This enhanced SlotBlinker serves as a powerful payload for:
 - **Pattern Type**: Sawtooth, square, sine, random, + 252 reserved
 - **Phase Offset**: 0° to 360° phase shift per output
 
+## ⚡ **Pipelined Architecture**
+
+The SlotBlinker uses a **3-stage pipeline** to ensure timing closure:
+
+### **Pipeline Stage 1: Pattern Generation & Frequency/Phase**
+- Generate raw patterns based on pattern type
+- Apply frequency dividers and phase offsets
+- **Latency**: 1 clock cycle
+
+### **Pipeline Stage 2: Amplitude Scaling**
+- Apply amplitude scaling with proper bit width handling
+- **Latency**: 2 clock cycles
+
+### **Pipeline Stage 3: Sign Control & Output**
+- Apply sign control (unsigned vs signed)
+- Generate final outputs
+- **Latency**: 3 clock cycles
+
+### **Benefits of Pipelining**
+- ✅ **Timing Closure**: Breaks up critical path
+- ✅ **High Performance**: Maintains clock frequency
+- ✅ **Predictable Latency**: Fixed 3-cycle delay
+- ✅ **Resource Efficient**: Better FPGA utilization
+
 ## 📊 **Default Behavior (Backward Compatible)**
 
 When all control registers are 0, the SlotBlinker behaves like the original:
@@ -59,9 +84,9 @@ When all control registers are 0, the SlotBlinker behaves like the original:
 ## 🎨 **Pattern Types Available**
 
 1. **Sawtooth (0)**: Linear ramp from 0 to maximum
-2. **Square Wave (1)**: Toggle between high and low
-3. **Sine Approximation (2)**: 8-step sine wave approximation
-4. **Random (3)**: Pseudo-random pattern
+2. **Square Wave (1)**: Toggle between high and low (simplified for timing)
+3. **Sine Approximation (2)**: Simplified sine wave approximation
+4. **Random (3)**: Simplified pseudo-random pattern
 5. **Reserved (4-255)**: Future pattern types
 
 ## 🛡️ **Safety Features**
@@ -70,10 +95,11 @@ When all control registers are 0, the SlotBlinker behaves like the original:
 - **Amplitude Limits**: Prevents accidental over-voltage
 - **Frequency Bounds**: Reasonable ranges prevent extreme speeds
 - **Backward Compatibility**: Original behavior preserved
+- **Timing Closure**: Pipelined architecture ensures reliable operation
 
 ## 📁 **Files**
 
-- `SlotBlinker.vhd` - Enhanced entity with comprehensive control
+- `SlotBlinker.vhd` - Enhanced entity with comprehensive control and pipelining
 - `top_slot_blinker.vhd` - Top-level wrapper for CustomWrapper
 - `CONTROL_REGISTERS.md` - Complete control register documentation
 - `Makefile` - Build configuration
@@ -111,6 +137,12 @@ CR3 = 0x00008000  # Output C: 180° phase
 CR4 = 0x0000C000  # Output D: 270° phase
 ```
 
+### **Full Range Mode**
+```python
+# Enable full signed range for advanced users
+CR0 = 0xA0000000  # Enable = 1, Sign Control = 1
+```
+
 ## 🔮 **Future Enhancements**
 
 The control register design allows for:
@@ -132,4 +164,11 @@ For complete control register details, see `CONTROL_REGISTERS.md`.
 4. **Connect instruments** to outputs
 5. **Enjoy configurable patterns!**
 
-The enhanced SlotBlinker transforms a simple test pattern generator into a powerful, flexible instrument for testing, debugging, and demonstration purposes! 🚀✨
+## ⏱️ **Timing Considerations**
+
+- **Pipeline Latency**: 3 clock cycles from input to output
+- **Clock Frequency**: Optimized for 31.25 MHz operation
+- **Timing Closure**: Pipelined architecture ensures reliable timing
+- **Resource Usage**: Efficient FPGA utilization with DSP48 blocks
+
+The enhanced SlotBlinker transforms a simple test pattern generator into a **powerful, flexible, and timing-optimized instrument** for testing, debugging, and demonstration purposes! 🚀✨
