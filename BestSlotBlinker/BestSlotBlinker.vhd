@@ -272,10 +272,10 @@ begin
         scaled_counter_d_pipe1 <= (others => '0');
       else
         -- Generate raw patterns and apply bit mask
-        raw_pattern_a_pipe1 <= generate_pattern_enhanced(pattern_type_a(3 downto 0), counter) and bit_mask;
-        raw_pattern_b_pipe1 <= generate_pattern_enhanced(pattern_type_b(3 downto 0), counter) and bit_mask;
-        raw_pattern_c_pipe1 <= generate_pattern_enhanced(pattern_type_c(3 downto 0), counter) and bit_mask;
-        raw_pattern_d_pipe1 <= generate_pattern_enhanced(pattern_type_d(3 downto 0), counter) and bit_mask;
+        raw_pattern_a_pipe1 <= generate_pattern_enhanced(pattern_type_a(3 downto 0), counter) and unsigned(bit_mask);
+        raw_pattern_b_pipe1 <= generate_pattern_enhanced(pattern_type_b(3 downto 0), counter) and unsigned(bit_mask);
+        raw_pattern_c_pipe1 <= generate_pattern_enhanced(pattern_type_c(3 downto 0), counter) and unsigned(bit_mask);
+        raw_pattern_d_pipe1 <= generate_pattern_enhanced(pattern_type_d(3 downto 0), counter) and unsigned(bit_mask);
         
         -- Apply frequency divider and phase offset
         scaled_counter_a_pipe1 <= (counter + (phase_offset_a & "00000000")) / freq_div_a;
