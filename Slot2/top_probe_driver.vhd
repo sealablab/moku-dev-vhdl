@@ -45,6 +45,8 @@ begin
             status_register   => probe_driver_status_register  -- Capture status register
         );
     
+    -- TODO: Maybe we should think about some Top-Level CR0 bits to aid in debugging. Something Like a YOLO bit?
+	-- TODO: Impement 'YOLO' BIT
     -- =============================================================================
     -- OUTPUT ASSIGNMENTS
     -- =============================================================================
@@ -55,9 +57,9 @@ begin
     -- OutputB: Show probe intensity when firing, otherwise zero
     OutputB <= probe_intensity_out when probe_trig_out = ProbeTrigger_Threshold else (others => '0');
     
-    -- OutputC: Echo back Control0(15:0), Control1(7:0), 3 zeros, and status register
+    -- OutputC: Echo back Control0(10 downto 0) and status register
     -- Note: OutputC is 16 bits, so we select the most relevant portion
-    -- Include Control0(10:0) and status register for meaningful 16-bit output
+    -- Include Control0(10 downto 0) and status register for meaningful 16-bit output
     OutputC <= signed(Control0(10 downto 0) & probe_driver_status_register);
     
     -- OutputD: Status and control information for debugging/monitoring

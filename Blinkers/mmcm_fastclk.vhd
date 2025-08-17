@@ -7,10 +7,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library unisim;
-use unisim.vcomponents.all;
 
-entity mmcm_multiplier is
+entity mmcm_fastclk is
     port (
         clk_in     : in  std_logic;   -- 31.25 MHz input clock
         reset      : in  std_logic;   -- async reset
@@ -19,7 +17,7 @@ entity mmcm_multiplier is
     );
 end entity;
 
-architecture rtl of mmcm_multiplier is
+architecture rtl of mmcm_fastclk is
 
     signal clkfb     : std_logic;
     signal clk_mmcm  : std_logic;
