@@ -37,7 +37,7 @@ This enhanced SlotBlinker serves as a powerful payload for:
 ## 🔧 **Key Control Features**
 
 ### **CR0: Global Control**
-- **Enable/Disable**: Master control (active-low)
+- **nEnable**: Master control (active-low: 0=enabled, 1=disabled)
 - **Software Reset**: Pulse high to reset system
 - **Sign Control**: Safe unsigned (0) or full range (1)
 - **Global Divider**: Scale all outputs 1x to 32x slower
@@ -110,19 +110,19 @@ When all control registers are 0, the SlotBlinker behaves like the original:
 ### **Basic Operation**
 ```python
 # Enable all outputs in safe mode
-CR0 = 0x80000000  # Enable = 1, Sign Control = 0
+CR0 = 0x00000000  # nEnable = 0 (enabled), Sign Control = 0
 ```
 
 ### **Slow Motion Debug**
 ```python
 # Slow everything down 16x for debugging
-CR0 = 0x90000000  # Enable = 1, Global Divider = 16
+CR0 = 0x10000000  # nEnable = 0 (enabled), Global Divider = 16
 ```
 
 ### **Different Patterns**
 ```python
 # Output A: Fast sawtooth, Output B: Slow square wave
-CR0 = 0x80000000  # Enable = 1
+CR0 = 0x00000000  # nEnable = 0 (enabled)
 CR1 = 0x00000000  # Output A: sawtooth, full speed
 CR2 = 0x01010000  # Output B: square wave, 16x slower
 ```
@@ -130,7 +130,7 @@ CR2 = 0x01010000  # Output B: square wave, 16x slower
 ### **Phase-Shifted Outputs**
 ```python
 # All outputs same frequency but 90° apart
-CR0 = 0x80000000  # Enable = 1
+CR0 = 0x00000000  # nEnable = 0 (enabled)
 CR1 = 0x00000000  # Output A: 0° phase
 CR2 = 0x00004000  # Output B: 90° phase
 CR3 = 0x00008000  # Output C: 180° phase
@@ -140,7 +140,13 @@ CR4 = 0x0000C000  # Output D: 270° phase
 ### **Full Range Mode**
 ```python
 # Enable full signed range for advanced users
-CR0 = 0xA0000000  # Enable = 1, Sign Control = 1
+CR0 = 0x20000000  # nEnable = 0 (enabled), Sign Control = 1
+```
+
+### **Disable Module**
+```python
+# Disable all outputs (safe shutdown)
+CR0 = 0x80000000  # nEnable = 1 (disabled)
 ```
 
 ## 🔮 **Future Enhancements**

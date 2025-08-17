@@ -49,7 +49,7 @@ architecture rtl of SlotBlinker is
   end function;
   
   -- Control register parsing
-  signal enable          : std_logic;
+  signal nEnable          : std_logic;
   signal soft_reset      : std_logic;
   signal sign_control    : std_logic;
   signal global_divider  : unsigned(4 downto 0);
@@ -107,7 +107,7 @@ architecture rtl of SlotBlinker is
 
 begin
   -- Parse Control Register 0: Global Control & Timing
-  enable         <= control0(31);               -- Enable (active-high)
+  nEnable        <= not control0(31);           -- nEnable (active-low enable)
   soft_reset     <= control0(30);               -- Software reset
   sign_control   <= control0(29);               -- Sign control (0=unsigned, 1=signed)
   global_divider <= unsigned(control0(28 downto 24)) when unsigned(control0(28 downto 24)) > 0 else "00001"; -- Global clock divider (1-32, default 1)
@@ -149,7 +149,7 @@ begin
       if reset_sync = '1' then
         counter <= (others => '0');
         div_counter <= (others => '0');
-      elsif enable = '1' then
+      elsif nEnable = '1' then -- Use nEnable for the main enable
         -- Apply global divider
         if div_counter >= global_divider then
           counter <= counter + 1;

@@ -14,14 +14,14 @@ def print_control_register_analysis():
     
     # CR0 Analysis
     cr0 = 0x00000000
-    enable = (cr0 >> 31) & 1
+    nEnable = (cr0 >> 31) & 1
     soft_reset = (cr0 >> 30) & 1
     sign_control = (cr0 >> 29) & 1
     global_divider = (cr0 >> 24) & 0x1F
     pattern_sel = (cr0 >> 16) & 0xFF
     
     print(f"CR0 (0x{cr0:08X}):")
-    print(f"  Enable (bit 31): {enable} ({'ENABLED' if enable else 'DISABLED'})")
+    print(f"  nEnable (bit 31): {nEnable} ({'ENABLED' if nEnable == 0 else 'DISABLED'})")
     print(f"  Soft Reset (bit 30): {soft_reset} ({'RESET' if soft_reset else 'NORMAL'})")
     print(f"  Sign Control (bit 29): {sign_control} ({'SIGNED' if sign_control else 'UNSIGNED'})")
     print(f"  Global Divider (bits 28-24): {global_divider} ({'INVALID - FIXED TO 1' if global_divider == 0 else f'{global_divider}x'})")
@@ -57,7 +57,7 @@ def print_control_register_analysis():
     
     # Recommended safe startup values
     print("🚀 RECOMMENDED SAFE STARTUP VALUES:")
-    print("CR0: 0x80000000 (Enable only, unsigned mode)")
+    print("CR0: 0x00000000 (Enable, unsigned mode, all defaults)")
     print("CR1: 0x00000000 (Default: 1x speed, sawtooth)")
     print("CR2: 0x00000000 (Default: 4x speed, sawtooth)")
     print("CR3: 0x00000000 (Default: 16x speed, sawtooth)")
@@ -70,7 +70,7 @@ def print_control_register_analysis():
     
     # Test 1: Fast patterns
     print("\n1. FAST PATTERNS (for debugging):")
-    print("   CR0: 0x80000000 (Enable)")
+    print("   CR0: 0x00000000 (Enable)")
     print("   CR1: 0x01000000 (1x speed)")
     print("   CR2: 0x02000000 (2x speed)")
     print("   CR3: 0x04000000 (4x speed)")
@@ -78,7 +78,7 @@ def print_control_register_analysis():
     
     # Test 2: Different patterns
     print("\n2. DIFFERENT PATTERNS:")
-    print("   CR0: 0x80000000 (Enable)")
+    print("   CR0: 0x00000000 (Enable)")
     print("   CR1: 0x00010000 (Sawtooth)")
     print("   CR2: 0x00020000 (Square wave)")
     print("   CR3: 0x00030000 (Sine approximation)")
@@ -86,7 +86,7 @@ def print_control_register_analysis():
     
     # Test 3: Slow motion
     print("\n3. SLOW MOTION (for detailed analysis):")
-    print("   CR0: 0x90000000 (Enable + 16x global divider)")
+    print("   CR0: 0x10000000 (Enable + 16x global divider)")
     print("   CR1: 0x00000000 (Default speeds)")
     print("   CR2: 0x00000000")
     print("   CR3: 0x00000000")
@@ -94,11 +94,19 @@ def print_control_register_analysis():
     
     # Test 4: Phase shifted
     print("\n4. PHASE SHIFTED (90° apart):")
-    print("   CR0: 0x80000000 (Enable)")
+    print("   CR0: 0x00000000 (Enable)")
     print("   CR1: 0x00000000 (0°)")
     print("   CR2: 0x00004000 (90°)")
     print("   CR3: 0x00008000 (180°)")
     print("   CR4: 0x0000C000 (270°)")
+    
+    # Test 5: Disable module
+    print("\n5. DISABLE MODULE:")
+    print("   CR0: 0x80000000 (Disable - bit 31 = 1)")
+    print("   CR1: 0x00000000")
+    print("   CR2: 0x00000000")
+    print("   CR3: 0x00000000")
+    print("   CR4: 0x00000000")
 
 def test_control_register_calculations():
     """Test the control register bit field calculations"""
@@ -108,9 +116,9 @@ def test_control_register_calculations():
     
     # Test CR0 parsing
     print("\nCR0 Bit Field Parsing:")
-    cr0 = 0x80000000  # Enable only
+    cr0 = 0x00000000  # Enable only
     print(f"CR0 = 0x{cr0:08X}")
-    print(f"  Bit 31 (Enable): {(cr0 >> 31) & 1}")
+    print(f"  Bit 31 (nEnable): {(cr0 >> 31) & 1} ({'DISABLED' if (cr0 >> 31) & 1 else 'ENABLED'})")
     print(f"  Bit 30 (Soft Reset): {(cr0 >> 30) & 1}")
     print(f"  Bit 29 (Sign Control): {(cr0 >> 29) & 1}")
     print(f"  Bits 28-24 (Global Divider): {(cr0 >> 24) & 0x1F}")

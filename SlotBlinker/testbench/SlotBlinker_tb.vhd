@@ -90,7 +90,7 @@ begin
     -- Test Phase 1: Enable with defaults (should work now)
     report "=== Test Phase 1: Enable with defaults ===";
     reset <= '0';
-    control0(31) <= '1';  -- Enable (active-high)
+    control0(31) <= '0';  -- Enable (active-low: 0 = enabled, 1 = disabled)
     wait for CLK_PERIOD * 50;  -- Wait for pipeline to fill
     
     -- Test Phase 2: Test different pattern types
@@ -144,7 +144,7 @@ begin
     
     -- Test Phase 9: Return to safe defaults
     report "=== Test Phase 9: Return to safe defaults ===";
-    control0 <= x"80000000";  -- Enable only
+    control0 <= x"00000000";  -- Enable (bit 31 = 0), all other defaults
     control1 <= (others => '0');
     control2 <= (others => '0');
     control3 <= (others => '0');
