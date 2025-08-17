@@ -206,7 +206,7 @@ begin
   soft_reset     <= '0';                        -- Software reset removed (redundant with main reset)
   sign_control   <= control0(30);               -- Sign control (0=unsigned, 1=signed) - moved to bit 30
   global_divider <= unsigned(control0(28 downto 24)) when unsigned(control0(28 downto 24)) > 0 else "00001"; -- Global clock divider (1-32, default 1)
-  bit_mask       <= control0(15 downto 0);      -- Bit mask for advanced experimentation
+  bit_mask       <= control0(15 downto 0) when control0(15 downto 0) /= x"0000" else x"FFFF"; -- Bit mask with 0xFFFF default for backward compatibility
   
   -- Parse Control Register 1: Output A Configuration
   freq_div_a     <= unsigned(control1(31 downto 24)) when unsigned(control1(31 downto 24)) > 0 else "00000001"; -- Frequency divider (1-256, default 1)

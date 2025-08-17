@@ -13,7 +13,7 @@ The BestSlotBlinker uses 5 control registers (CR0-CR4) for comprehensive configu
 | 29 | reserved | **Reserved for future use** | - |
 | 28-24 | global_divider | Global clock divider (1-32) | 1 |
 | 23-16 | reserved | Reserved for future use | - |
-| **15-0** | **bit_mask** | **16-bit bit-mask field** | **0xFFFF** |
+| **15-0** | **bit_mask** | **16-bit bit-mask field** | **0xFFFF** (when not 0x0000) |
 
 ## Control Register 1 (CR1) - Output A Configuration
 
@@ -78,7 +78,17 @@ The 16-bit bit-mask field in CR0[15:0] allows advanced users to selectively mask
 - **Bit 15**: Sign control (1=allow signed, 0=force unsigned)
 - **Bits 14-0**: Pattern bit masks (1=allow bit, 0=mask out bit)
 - **Default Value**: 0xFFFF (all bits enabled - backward compatible)
+- **Special Case**: If CR0[15:0] = 0x0000, bit mask defaults to 0xFFFF for safety
 - **Application**: Applied to ALL outputs after pattern generation
+
+### **⚠️ Critical Initialization Behavior**
+When all control registers are initialized to zero:
+- **CR0[31] = 0**: Module is **DISABLED** (nEnable = 1, active-low)
+- **CR0[30] = 0**: Force **unsigned mode**
+- **CR0[15:0] = 0x0000**: Bit mask defaults to **0xFFFF** (safety feature)
+- **Result**: Module is safely disabled with no output
+
+**This ensures backward compatibility and prevents accidental activation with zeroed registers.**
 
 ### **Usage Examples**
 

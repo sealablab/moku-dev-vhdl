@@ -50,6 +50,8 @@ Each output has its own control register with **local pattern selection**:
 ### 🎭 **Advanced Bit-Mask Feature**
 The 16-bit bit-mask field in CR0[15:0] allows advanced users to selectively mask out specific bits from all pattern outputs. This enables pattern experimentation, custom waveform creation, and bit-level debugging while maintaining full backward compatibility.
 
+**Safety Feature**: When CR0[15:0] = 0x0000, the bit mask defaults to 0xFFFF to prevent accidental pattern masking during initialization.
+
 ## UART TX Pattern Analysis
 
 The `PATTERN_SUMMARY.md` file contains a detailed analysis of implementing UART TX output:
