@@ -33,7 +33,7 @@ This enhanced module serves as a **powerful payload for**:
 | 30 | Soft Reset | Software reset | 0 (normal) | Pulse high to reset |
 | 29 | Sign Control | Output sign mode | 0 (unsigned) | 0=safe, 1=full range |
 | 28-24 | Global Divider | Clock scaling | 1x | 1-32x, safe default |
-| 23-16 | Pattern Select | Reserved | 0 | Future use |
+| **3-0** | **Pattern Select** | **Global pattern type** | **0 (sawtooth)** | **16 patterns available** |
 
 ### **CR1-CR4: Individual Output Configuration**
 | Bit Range | Field | Function | Default | Safe Default |
@@ -97,11 +97,29 @@ This enhanced module serves as a **powerful payload for**:
 
 | Type | Code | Description | Use Case |
 |------|------|-------------|----------|
-| **Sawtooth** | 0x00 | Linear ramp 0→max | Frequency analysis |
-| **Square Wave** | 0x01 | High/low toggle | Digital testing |
-| **Sine Approximation** | 0x02 | Simplified sine | Analog simulation |
-| **Random** | 0x03 | Pseudo-random | Noise testing |
-| **Reserved** | 0x04-FF | Future patterns | Extensibility |
+| **Sawtooth** | 0x0 | Linear ramp 0→max | Frequency analysis, basic testing |
+| **Square Wave** | 0x1 | High/low toggle (50% duty) | Digital testing, clock simulation |
+| **Triangle Wave** | 0x2 | Folded sawtooth | Audio testing, smooth transitions |
+| **Sine Approximation** | 0x3 | 16-step sine wave | Analog simulation, audio testing |
+| **Random Pattern** | 0x4 | Improved LFSR-like | Noise testing, random data |
+| **Staircase** | 0x5 | 4 discrete levels | DAC testing, level verification |
+| **Exponential Ramp** | 0x6 | Logarithmic-like curve | Audio testing, natural curves |
+| **Pulse Train** | 0x7 | Narrow pulses | Trigger testing, pulse analysis |
+| **Ramp with Reset** | 0x8 | Sawtooth with clear | Reset testing, cycle analysis |
+| **Alternating Levels** | 0x9 | 2 levels alternating | Digital pattern testing |
+| **Sine with Harmonics** | 0xA | Rich harmonic content | Audio analysis, tone testing |
+| **Chirp** | 0xB | Frequency sweep | Frequency response testing |
+| **Noise Burst** | 0xC | Structured random | Noise analysis, burst testing |
+| **Dual Frequency** | 0xD | Beat pattern | Interference testing |
+| **Modulated Carrier** | 0xE | Complex modulation | Communication testing |
+| **Complex Waveform** | 0xF | Multiple harmonics | Advanced audio testing |
+
+### **Pattern Selection Control**
+
+- **Global Pattern**: Set CR0[3:0] to control all outputs simultaneously
+- **Individual Override**: Set CR1-CR4[15:8] to override global pattern per output
+- **Default Behavior**: If no individual pattern set, outputs use global pattern
+- **Easy Testing**: Change one register (CR0[3:0]) to test all patterns
 
 ## 🚀 **Quick Start Guide**
 
@@ -114,11 +132,11 @@ This enhanced module serves as a **powerful payload for**:
 ### **2. Basic Operation (All Defaults)**
 ```python
 # All registers = 0x0000 (safe defaults)
-CR0 = 0x00000000  # nEnable = 0 (enabled), all defaults
-CR1 = 0x00000000  # 1x speed, 100% amplitude, sawtooth
-CR2 = 0x00000000  # 4x speed, 100% amplitude, sawtooth
-CR3 = 0x00000000  # 16x speed, 100% amplitude, sawtooth
-CR4 = 0x00000000  # 64x speed, 100% amplitude, sawtooth
+CR0 = 0x00000000  # nEnable = 0 (enabled), Pattern = 0x0 (sawtooth)
+CR1 = 0x00000000  # 1x speed, 100% amplitude, use global pattern
+CR2 = 0x00000000  # 4x speed, 100% amplitude, use global pattern
+CR3 = 0x00000000  # 16x speed, 100% amplitude, use global pattern
+CR4 = 0x00000000  # 64x speed, 100% amplitude, use global pattern
 ```
 
 ### **3. Enable/Disable Control**
@@ -128,6 +146,37 @@ CR0 = 0x00000000  # nEnable = 0 (enabled)
 
 # Disable module (safe shutdown)
 CR0 = 0x80000000  # nEnable = 1 (disabled)
+```
+
+### **4. Pattern Selection Examples**
+```python
+# Test all patterns easily - just change CR0[3:0]
+CR0 = 0x00000000  # Pattern 0x0: Sawtooth
+CR0 = 0x00000001  # Pattern 0x1: Square Wave
+CR0 = 0x00000002  # Pattern 0x2: Triangle Wave
+CR0 = 0x00000003  # Pattern 0x3: Sine Wave
+CR0 = 0x00000004  # Pattern 0x4: Random
+CR0 = 0x00000005  # Pattern 0x5: Staircase
+CR0 = 0x00000006  # Pattern 0x6: Exponential
+CR0 = 0x00000007  # Pattern 0x7: Pulse Train
+CR0 = 0x00000008  # Pattern 0x8: Ramp with Reset
+CR0 = 0x00000009  # Pattern 0x9: Alternating Levels
+CR0 = 0x0000000A  # Pattern 0xA: Sine with Harmonics
+CR0 = 0x0000000B  # Pattern 0xB: Chirp
+CR0 = 0x0000000C  # Pattern 0xC: Noise Burst
+CR0 = 0x0000000D  # Pattern 0xD: Dual Frequency
+CR0 = 0x0000000E  # Pattern 0xE: Modulated Carrier
+CR0 = 0x0000000F  # Pattern 0xF: Complex Waveform
+```
+
+### **5. Individual Pattern Override**
+```python
+# Global pattern for most outputs, override specific ones
+CR0 = 0x00000000  # Global: Sawtooth
+CR1 = 0x00000000  # Output A: Use global (sawtooth)
+CR2 = 0x00010000  # Output B: Override to Square Wave
+CR3 = 0x00020000  # Output C: Override to Triangle Wave
+CR4 = 0x00000000  # Output D: Use global (sawtooth)
 ```
 
 ## 🧪 **Advanced Configurations**

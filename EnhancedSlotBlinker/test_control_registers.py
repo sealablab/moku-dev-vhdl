@@ -25,7 +25,7 @@ def print_control_register_analysis():
     print(f"  Soft Reset (bit 30): {soft_reset} ({'RESET' if soft_reset else 'NORMAL'})")
     print(f"  Sign Control (bit 29): {sign_control} ({'SIGNED' if sign_control else 'UNSIGNED'})")
     print(f"  Global Divider (bits 28-24): {global_divider} ({'INVALID - FIXED TO 1' if global_divider == 0 else f'{global_divider}x'})")
-    print(f"  Pattern Select (bits 23-16): {pattern_sel} (reserved)")
+    print(f"  Pattern Select (bits 3-0): {pattern_sel} ({'SAWTOOTH' if pattern_sel == 0 else 'SQUARE' if pattern_sel == 1 else 'TRIANGLE' if pattern_sel == 2 else 'SINE' if pattern_sel == 3 else 'RANDOM' if pattern_sel == 4 else 'STAIRCASE' if pattern_sel == 5 else 'EXPONENTIAL' if pattern_sel == 6 else 'PULSE_TRAIN' if pattern_sel == 7 else 'RAMP_RESET' if pattern_sel == 8 else 'ALTERNATING' if pattern_sel == 9 else 'SINE_HARMONICS' if pattern_sel == 10 else 'CHIRP' if pattern_sel == 11 else 'NOISE_BURST' if pattern_sel == 12 else 'DUAL_FREQ' if pattern_sel == 13 else 'MODULATED' if pattern_sel == 14 else 'COMPLEX' if pattern_sel == 15 else 'UNKNOWN'})")
     print()
     
     # CR1-CR4 Analysis (all zeros)
@@ -77,31 +77,50 @@ def print_control_register_analysis():
     print("   CR4: 0x08000000 (8x speed)")
     
     # Test 2: Different patterns
-    print("\n2. DIFFERENT PATTERNS:")
-    print("   CR0: 0x00000000 (Enable)")
-    print("   CR1: 0x00010000 (Sawtooth)")
-    print("   CR2: 0x00020000 (Square wave)")
-    print("   CR3: 0x00030000 (Sine approximation)")
-    print("   CR4: 0x00040000 (Random)")
+    print("\n2. DIFFERENT PATTERNS (Global Control):")
+    print("   CR0: 0x00000000 (Enable + Sawtooth)")
+    print("   CR0: 0x00000001 (Enable + Square Wave)")
+    print("   CR0: 0x00000002 (Enable + Triangle Wave)")
+    print("   CR0: 0x00000003 (Enable + Sine Wave)")
+    print("   CR0: 0x00000004 (Enable + Random)")
+    print("   CR0: 0x00000005 (Enable + Staircase)")
+    print("   CR0: 0x00000006 (Enable + Exponential)")
+    print("   CR0: 0x00000007 (Enable + Pulse Train)")
+    print("   CR0: 0x00000008 (Enable + Ramp with Reset)")
+    print("   CR0: 0x00000009 (Enable + Alternating Levels)")
+    print("   CR0: 0x0000000A (Enable + Sine with Harmonics)")
+    print("   CR0: 0x0000000B (Enable + Chirp)")
+    print("   CR0: 0x0000000C (Enable + Noise Burst)")
+    print("   CR0: 0x0000000D (Enable + Dual Frequency)")
+    print("   CR0: 0x0000000E (Enable + Modulated Carrier)")
+    print("   CR0: 0x0000000F (Enable + Complex Waveform)")
     
-    # Test 3: Slow motion
-    print("\n3. SLOW MOTION (for detailed analysis):")
+    # Test 3: Individual pattern override
+    print("\n3. INDIVIDUAL PATTERN OVERRIDE:")
+    print("   CR0: 0x00000000 (Global: Sawtooth)")
+    print("   CR1: 0x00010000 (Output A: Square Wave)")
+    print("   CR2: 0x00020000 (Output B: Triangle Wave)")
+    print("   CR3: 0x00030000 (Output C: Sine Wave)")
+    print("   CR4: 0x00040000 (Output D: Random)")
+    
+    # Test 4: Slow motion
+    print("\n4. SLOW MOTION (for detailed analysis):")
     print("   CR0: 0x10000000 (Enable + 16x global divider)")
     print("   CR1: 0x00000000 (Default speeds)")
     print("   CR2: 0x00000000")
     print("   CR3: 0x00000000")
     print("   CR4: 0x00000000")
     
-    # Test 4: Phase shifted
-    print("\n4. PHASE SHIFTED (90° apart):")
+    # Test 5: Phase shifted
+    print("\n5. PHASE SHIFTED (90° apart):")
     print("   CR0: 0x00000000 (Enable)")
     print("   CR1: 0x00000000 (0°)")
     print("   CR2: 0x00004000 (90°)")
     print("   CR3: 0x00008000 (180°)")
     print("   CR4: 0x0000C000 (270°)")
     
-    # Test 5: Disable module
-    print("\n5. DISABLE MODULE:")
+    # Test 6: Disable module
+    print("\n6. DISABLE MODULE:")
     print("   CR0: 0x80000000 (Disable - bit 31 = 1)")
     print("   CR1: 0x00000000")
     print("   CR2: 0x00000000")
@@ -122,7 +141,7 @@ def test_control_register_calculations():
     print(f"  Bit 30 (Soft Reset): {(cr0 >> 30) & 1}")
     print(f"  Bit 29 (Sign Control): {(cr0 >> 29) & 1}")
     print(f"  Bits 28-24 (Global Divider): {(cr0 >> 24) & 0x1F}")
-    print(f"  Bits 23-16 (Pattern Select): {(cr0 >> 16) & 0xFF}")
+    print(f"  Bits 3-0 (Pattern Select): {cr0 & 0xF}")
     
     # Test CR1 parsing
     print("\nCR1 Bit Field Parsing:")
