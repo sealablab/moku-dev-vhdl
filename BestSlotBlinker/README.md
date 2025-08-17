@@ -30,11 +30,12 @@ An enhanced version of the SlotBlinker with improved pattern generation and opti
 ## Control Register Layout
 
 ### **Global Control (CR0)**
-- **control0(3 downto 0)**: Reserved for future use
-- **control0(28 downto 24)**: Global clock divider (1-32)
-- **control0(29)**: Reserved for future use
+- **control0(31)**: nEnable (active-low enable)
 - **control0(30)**: Sign control (0=unsigned, 1=signed)
-- **control0(31)**: nEnable (active-low)
+- **control0(29)**: Reserved for future use
+- **control0(28 downto 24)**: Global clock divider (1-32)
+- **control0(23 downto 16)**: Reserved for future use
+- **control0(15 downto 0)**: **16-bit bit-mask field** for advanced experimentation
 
 ### **Individual Output Control (CR1-CR4)**
 Each output has its own control register with **local pattern selection**:
@@ -45,6 +46,9 @@ Each output has its own control register with **local pattern selection**:
 - **controlX(3 downto 0)**: **Local pattern selection (0-7)** ⭐
 
 **Key Improvement**: Each output's pattern is now configured in its own register for easier human configuration!
+
+### 🎭 **Advanced Bit-Mask Feature**
+The 16-bit bit-mask field in CR0[15:0] allows advanced users to selectively mask out specific bits from all pattern outputs. This enables pattern experimentation, custom waveform creation, and bit-level debugging while maintaining full backward compatibility.
 
 ## UART TX Pattern Analysis
 

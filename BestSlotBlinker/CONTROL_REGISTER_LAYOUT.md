@@ -12,8 +12,8 @@ The BestSlotBlinker uses 5 control registers (CR0-CR4) for comprehensive configu
 | 30 | sign_control | **Sign control** (0=unsigned, 1=signed) | 0 (unsigned) |
 | 29 | reserved | **Reserved for future use** | - |
 | 28-24 | global_divider | Global clock divider (1-32) | 1 |
-| 23-4 | reserved | Reserved for future use | - |
-| 3-0 | reserved | **Reserved for future use** | - |
+| 23-16 | reserved | Reserved for future use | - |
+| **15-0** | **bit_mask** | **16-bit bit-mask field** | **0xFFFF** |
 
 ## Control Register 1 (CR1) - Output A Configuration
 
@@ -63,6 +63,56 @@ The BestSlotBlinker uses 5 control registers (CR0-CR4) for comprehensive configu
 2. **Eliminated Redundancy**: Removed CR0 bit 30 (software reset) as it duplicated the main reset signal
 3. **Streamlined Phase Offset**: Reduced phase offset from 8 bits (0-255) to 4 bits (0-15) for more practical use
 4. **Human-Friendly Design**: Much easier to configure individual outputs without cross-referencing registers
+5. **Advanced Bit-Mask Field**: 16-bit mask field in CR0[15:0] for experimental pattern manipulation
+
+## 🎭 **Advanced Bit-Mask Functionality**
+
+### **Overview**
+The 16-bit bit-mask field in CR0[15:0] allows advanced users to selectively mask out specific bits from all pattern outputs. This enables:
+- **Pattern experimentation** by masking specific bit positions
+- **Custom waveform creation** through selective bit manipulation
+- **Debugging and analysis** of individual bit contributions
+- **Backward compatibility** when all registers are zero (default mask = 0xFFFF)
+
+### **Bit-Mask Behavior**
+- **Bit 15**: Sign control (1=allow signed, 0=force unsigned)
+- **Bits 14-0**: Pattern bit masks (1=allow bit, 0=mask out bit)
+- **Default Value**: 0xFFFF (all bits enabled - backward compatible)
+- **Application**: Applied to ALL outputs after pattern generation
+
+### **Usage Examples**
+
+#### **Basic Usage (Backward Compatible)**
+```vhdl
+control0 <= x"8000FFFF";  -- Default: enable all bits, unsigned mode
+```
+
+#### **Mask Out Lower 8 Bits (Create High-Byte Patterns)**
+```vhdl
+control0 <= x"8000FF00";  -- Only upper 8 bits, unsigned mode
+```
+
+#### **Mask Out Middle Bits (Create Edge-Only Patterns)**
+```vhdl
+control0 <= x"8000F00F";  -- Only bits 15-12 and 3-0, unsigned mode
+```
+
+#### **Force Unsigned Mode**
+```vhdl
+control0 <= x"0000FFFF";  -- All bits enabled, force unsigned (clear bit 15)
+```
+
+#### **Signed Mode with Selective Masking**
+```vhdl
+control0 <= x"8000AAAA";  -- Every other bit, signed mode
+```
+
+### **Advanced Experimentation Ideas**
+1. **Frequency Analysis**: Mask specific bits to see their contribution to pattern frequency
+2. **Harmonic Generation**: Use bit masks to create specific harmonic content
+3. **Noise Reduction**: Mask out noisy or unstable bit positions
+4. **Pattern Morphing**: Gradually change mask to morph between patterns
+5. **Bit-Level Debugging**: Isolate specific bits to debug pattern generation issues
 
 ### 🔄 **Pattern Selection Logic:**
 

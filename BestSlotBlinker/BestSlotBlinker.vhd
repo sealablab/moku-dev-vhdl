@@ -3,6 +3,7 @@
 -- Individual pattern selection per output in lower 4 bits of each control register
 -- No global pattern - each output is completely independent
 -- Sign control moved to CR0[30] for better organization
+-- 16-bit bit-mask field in CR0[15:0] for advanced experimentation
 -- Pipelined design for timing closure
 -- Designed for easy identification on oscilloscope and logic analyzer
 
@@ -147,6 +148,7 @@ architecture rtl of SlotBlinker is
   signal soft_reset      : std_logic;
   signal sign_control    : std_logic;
   signal global_divider  : unsigned(4 downto 0);
+  signal bit_mask        : std_logic_vector(15 downto 0);  -- 16-bit bit-mask field
   
   -- Output A configuration
   signal freq_div_a      : unsigned(7 downto 0);
@@ -204,6 +206,7 @@ begin
   soft_reset     <= '0';                        -- Software reset removed (redundant with main reset)
   sign_control   <= control0(30);               -- Sign control (0=unsigned, 1=signed) - moved to bit 30
   global_divider <= unsigned(control0(28 downto 24)) when unsigned(control0(28 downto 24)) > 0 else "00001"; -- Global clock divider (1-32, default 1)
+  bit_mask       <= control0(15 downto 0);      -- Bit mask for advanced experimentation
   
   -- Parse Control Register 1: Output A Configuration
   freq_div_a     <= unsigned(control1(31 downto 24)) when unsigned(control1(31 downto 24)) > 0 else "00000001"; -- Frequency divider (1-256, default 1)
@@ -268,11 +271,11 @@ begin
         scaled_counter_c_pipe1 <= (others => '0');
         scaled_counter_d_pipe1 <= (others => '0');
       else
-        -- Generate raw patterns
-        raw_pattern_a_pipe1 <= generate_pattern_enhanced(pattern_type_a(3 downto 0), counter);
-        raw_pattern_b_pipe1 <= generate_pattern_enhanced(pattern_type_b(3 downto 0), counter);
-        raw_pattern_c_pipe1 <= generate_pattern_enhanced(pattern_type_c(3 downto 0), counter);
-        raw_pattern_d_pipe1 <= generate_pattern_enhanced(pattern_type_d(3 downto 0), counter);
+        -- Generate raw patterns and apply bit mask
+        raw_pattern_a_pipe1 <= generate_pattern_enhanced(pattern_type_a(3 downto 0), counter) and bit_mask;
+        raw_pattern_b_pipe1 <= generate_pattern_enhanced(pattern_type_b(3 downto 0), counter) and bit_mask;
+        raw_pattern_c_pipe1 <= generate_pattern_enhanced(pattern_type_c(3 downto 0), counter) and bit_mask;
+        raw_pattern_d_pipe1 <= generate_pattern_enhanced(pattern_type_d(3 downto 0), counter) and bit_mask;
         
         -- Apply frequency divider and phase offset
         scaled_counter_a_pipe1 <= (counter + (phase_offset_a & "00000000")) / freq_div_a;
