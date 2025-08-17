@@ -154,25 +154,25 @@ architecture rtl of SlotBlinker is
   signal freq_div_a      : unsigned(7 downto 0);
   signal amp_scale_a     : unsigned(7 downto 0);
   signal pattern_type_a  : std_logic_vector(7 downto 0);
-  signal phase_offset_a  : unsigned(7 downto 0);
+  signal phase_offset_a  : unsigned(3 downto 0);  -- Reduced to 4 bits (0-15)
   
   -- Output B configuration
   signal freq_div_b      : unsigned(7 downto 0);
   signal amp_scale_b     : unsigned(7 downto 0);
   signal pattern_type_b  : std_logic_vector(7 downto 0);
-  signal phase_offset_b  : unsigned(7 downto 0);
+  signal phase_offset_b  : unsigned(3 downto 0);  -- Reduced to 4 bits (0-15)
   
   -- Output C configuration
   signal freq_div_c      : unsigned(7 downto 0);
   signal amp_scale_c     : unsigned(7 downto 0);
   signal pattern_type_c  : std_logic_vector(7 downto 0);
-  signal phase_offset_c  : unsigned(7 downto 0);
+  signal phase_offset_c  : unsigned(3 downto 0);  -- Reduced to 4 bits (0-15)
   
   -- Output D configuration
   signal freq_div_d      : unsigned(7 downto 0);
   signal amp_scale_d     : unsigned(7 downto 0);
   signal pattern_type_d  : std_logic_vector(7 downto 0);
-  signal phase_offset_d  : unsigned(7 downto 0);
+  signal phase_offset_d  : unsigned(3 downto 0);  -- Reduced to 4 bits (0-15)
   
   -- Internal signals
   signal counter         : unsigned(15 downto 0) := (others => '0');
