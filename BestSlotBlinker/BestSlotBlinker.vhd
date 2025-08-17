@@ -2,6 +2,7 @@
 -- A configurable blinker with 8 optimized patterns and proper LFSR random generation
 -- Individual pattern selection per output in lower 4 bits of each control register
 -- No global pattern - each output is completely independent
+-- Sign control moved to CR0[30] for better organization
 -- Pipelined design for timing closure
 -- Designed for easy identification on oscilloscope and logic analyzer
 
@@ -201,7 +202,7 @@ begin
   -- Parse Control Register 0: Global Control & Timing
   nEnable        <= not control0(31);           -- nEnable (active-low enable)
   soft_reset     <= '0';                        -- Software reset removed (redundant with main reset)
-  sign_control   <= control0(29);               -- Sign control (0=unsigned, 1=signed)
+  sign_control   <= control0(30);               -- Sign control (0=unsigned, 1=signed) - moved to bit 30
   global_divider <= unsigned(control0(28 downto 24)) when unsigned(control0(28 downto 24)) > 0 else "00001"; -- Global clock divider (1-32, default 1)
   
   -- Parse Control Register 1: Output A Configuration

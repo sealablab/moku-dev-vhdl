@@ -9,8 +9,8 @@ The BestSlotBlinker uses 5 control registers (CR0-CR4) for comprehensive configu
 | Bits | Name | Description | Default |
 |------|------|-------------|---------|
 | 31 | nEnable | **nEnable** (active-low enable) | 1 (disabled) |
-| 30 | ~~soft_reset~~ | **REMOVED** (redundant with main reset) | - |
-| 29 | sign_control | Sign control (0=unsigned, 1=signed) | 0 (unsigned) |
+| 30 | sign_control | **Sign control** (0=unsigned, 1=signed) | 0 (unsigned) |
+| 29 | reserved | **Reserved for future use** | - |
 | 28-24 | global_divider | Global clock divider (1-32) | 1 |
 | 23-4 | reserved | Reserved for future use | - |
 | 3-0 | reserved | **Reserved for future use** | - |
