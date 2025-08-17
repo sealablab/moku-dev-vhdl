@@ -165,10 +165,13 @@ begin
   process(clk)
     variable raw_pattern : unsigned(15 downto 0);
     variable scaled_pattern : unsigned(15 downto 0);
+    variable temp_mult : unsigned(23 downto 0);
   begin
     if rising_edge(clk) then
       raw_pattern := generate_pattern(pattern_type_a, counter, freq_div_a, phase_offset_a);
-      scaled_pattern := (raw_pattern * amp_scale_a) / 255;
+      -- Handle amplitude scaling with proper bit width
+      temp_mult := raw_pattern * amp_scale_a;
+      scaled_pattern := temp_mult(23 downto 8); -- Take upper 16 bits after division by 256
       
       -- Apply sign control
       if sign_control = '0' then
@@ -185,10 +188,13 @@ begin
   process(clk)
     variable raw_pattern : unsigned(15 downto 0);
     variable scaled_pattern : unsigned(15 downto 0);
+    variable temp_mult : unsigned(23 downto 0);
   begin
     if rising_edge(clk) then
       raw_pattern := generate_pattern(pattern_type_b, counter, freq_div_b, phase_offset_b);
-      scaled_pattern := (raw_pattern * amp_scale_b) / 255;
+      -- Handle amplitude scaling with proper bit width
+      temp_mult := raw_pattern * amp_scale_b;
+      scaled_pattern := temp_mult(23 downto 8); -- Take upper 16 bits after division by 256
       
       if sign_control = '0' then
         output_b <= signed('0' & scaled_pattern(14 downto 0));
@@ -202,10 +208,13 @@ begin
   process(clk)
     variable raw_pattern : unsigned(15 downto 0);
     variable scaled_pattern : unsigned(15 downto 0);
+    variable temp_mult : unsigned(23 downto 0);
   begin
     if rising_edge(clk) then
       raw_pattern := generate_pattern(pattern_type_c, counter, freq_div_c, phase_offset_c);
-      scaled_pattern := (raw_pattern * amp_scale_c) / 255;
+      -- Handle amplitude scaling with proper bit width
+      temp_mult := raw_pattern * amp_scale_c;
+      scaled_pattern := temp_mult(23 downto 8); -- Take upper 16 bits after division by 256
       
       if sign_control = '0' then
         output_c <= signed('0' & scaled_pattern(14 downto 0));
@@ -219,10 +228,13 @@ begin
   process(clk)
     variable raw_pattern : unsigned(15 downto 0);
     variable scaled_pattern : unsigned(15 downto 0);
+    variable temp_mult : unsigned(23 downto 0);
   begin
     if rising_edge(clk) then
       raw_pattern := generate_pattern(pattern_type_d, counter, freq_div_d, phase_offset_d);
-      scaled_pattern := (raw_pattern * amp_scale_d) / 255;
+      -- Handle amplitude scaling with proper bit width
+      temp_mult := raw_pattern * amp_scale_d;
+      scaled_pattern := temp_mult(23 downto 8); -- Take upper 16 bits after division by 256
       
       if sign_control = '0' then
         output_d <= signed('0' & scaled_pattern(14 downto 0));
