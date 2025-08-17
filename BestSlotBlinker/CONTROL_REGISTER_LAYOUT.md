@@ -13,7 +13,7 @@ The BestSlotBlinker uses 5 control registers (CR0-CR4) for comprehensive configu
 | 29 | sign_control | Sign control (0=unsigned, 1=signed) | 0 (unsigned) |
 | 28-24 | global_divider | Global clock divider (1-32) | 1 |
 | 23-4 | reserved | Reserved for future use | - |
-| 3-0 | pattern_sel | **Global pattern selector** (fallback) | 0 |
+| 3-0 | reserved | **Reserved for future use** | - |
 
 ## Control Register 1 (CR1) - Output A Configuration
 
@@ -68,7 +68,7 @@ The BestSlotBlinker uses 5 control registers (CR0-CR4) for comprehensive configu
 
 - **Local Pattern**: If `pattern_type_X(15 downto 8)` = 0, use `pattern_X(3 downto 0)` from same register
 - **Extended Pattern**: If `pattern_type_X(15 downto 8)` > 0, use that value as pattern type
-- **Global Fallback**: CR0 bits 3-0 still available as global pattern selector for backward compatibility
+- **No Global Fallback**: Each output is completely independent with its own pattern selection
 
 ### 📝 **Usage Examples:**
 

@@ -30,7 +30,7 @@ An enhanced version of the SlotBlinker with improved pattern generation and opti
 ## Control Register Layout
 
 ### **Global Control (CR0)**
-- **control0(3 downto 0)**: Global pattern selector (fallback for outputs)
+- **control0(3 downto 0)**: Reserved for future use
 - **control0(28 downto 24)**: Global clock divider (1-32)
 - **control0(29)**: Sign control (0=unsigned, 1=signed)
 - **control0(31)**: nEnable (active-low)

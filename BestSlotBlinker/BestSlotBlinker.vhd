@@ -1,6 +1,7 @@
 -- BestSlotBlinker.vhd
 -- A configurable blinker with 8 optimized patterns and proper LFSR random generation
 -- Individual pattern selection per output in lower 4 bits of each control register
+-- No global pattern - each output is completely independent
 -- Pipelined design for timing closure
 -- Designed for easy identification on oscilloscope and logic analyzer
 
@@ -145,7 +146,6 @@ architecture rtl of SlotBlinker is
   signal soft_reset      : std_logic;
   signal sign_control    : std_logic;
   signal global_divider  : unsigned(4 downto 0);
-  signal pattern_sel     : std_logic_vector(3 downto 0);
   
   -- Output A configuration
   signal freq_div_a      : unsigned(7 downto 0);
@@ -203,7 +203,6 @@ begin
   soft_reset     <= '0';                        -- Software reset removed (redundant with main reset)
   sign_control   <= control0(29);               -- Sign control (0=unsigned, 1=signed)
   global_divider <= unsigned(control0(28 downto 24)) when unsigned(control0(28 downto 24)) > 0 else "00001"; -- Global clock divider (1-32, default 1)
-  pattern_sel    <= control0(3 downto 0);       -- Global pattern selector (fallback for outputs)
   
   -- Parse Control Register 1: Output A Configuration
   freq_div_a     <= unsigned(control1(31 downto 24)) when unsigned(control1(31 downto 24)) > 0 else "00000001"; -- Frequency divider (1-256, default 1)
