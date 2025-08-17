@@ -132,9 +132,9 @@ control0 <= x"8000AAAA";  -- Every other bit, signed mode
 
 ### 📝 **Usage Examples:**
 
-#### **Configure Output A for Square Wave:**
+#### **Configure Output A for Square Wave (Default):**
 ```vhdl
-control1 <= x"01000001";  -- freq_div=1, amp_scale=255, pattern_type=0, phase=0, pattern=1 (square)
+control1 <= x"01000000";  -- freq_div=1, amp_scale=255, pattern_type=0, phase=0, pattern=0 (square)
 ```
 
 #### **Configure Output B for Triangle Wave:**

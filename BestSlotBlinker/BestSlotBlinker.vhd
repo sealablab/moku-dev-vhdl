@@ -4,6 +4,7 @@
 -- No global pattern - each output is completely independent
 -- Sign control moved to CR0[30] for better organization
 -- 16-bit bit-mask field in CR0[15:0] for advanced experimentation
+-- Square wave is now default pattern (0000) for easier identification
 -- Pipelined design for timing closure
 -- Designed for easy identification on oscilloscope and logic analyzer
 
@@ -41,15 +42,15 @@ architecture rtl of SlotBlinker is
     variable lfsr_state : unsigned(15 downto 0);
   begin
     case pattern_type is
-      when "0000" => -- Sawtooth (linear ramp)
-        pattern_result := counter_val;
-        
-      when "0001" => -- Square wave (proper 50% duty cycle)
+      when "0000" => -- Square wave (proper 50% duty cycle) - DEFAULT
         if counter_val(15) = '1' then
           pattern_result := x"7FFF"; -- High level
         else
           pattern_result := x"0000"; -- Low level
         end if;
+        
+      when "0001" => -- Sawtooth (linear ramp)
+        pattern_result := counter_val;
         
       when "0010" => -- Triangle wave (sawtooth folded)
         temp_val := counter_val(14 downto 0) & '0'; -- Double frequency

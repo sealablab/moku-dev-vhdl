@@ -18,8 +18,8 @@ An enhanced version of the SlotBlinker with improved pattern generation and opti
 ### 3. **8 Implemented Patterns**
 | Code | Pattern | Description |
 |------|---------|-------------|
-| 0000 | Sawtooth | Linear ramp (0x0000 to 0xFFFF) |
-| 0001 | Square Wave | 50% duty cycle (0x0000 or 0x7FFF) |
+| 0000 | **Square Wave** | **50% duty cycle (0x0000 or 0x7FFF) - DEFAULT** |
+| 0001 | Sawtooth | Linear ramp (0x0000 to 0xFFFF) |
 | 0010 | Triangle | Folded sawtooth (0x0000 to 0x7FFF) |
 | 0011 | Sine | 16-step approximation (-0x8000 to 0x7FFF) |
 | 0100 | **LFSR Random** | **Improved pseudo-random sequence** |
@@ -79,8 +79,8 @@ The `PATTERN_SUMMARY.md` file contains a detailed analysis of implementing UART 
 
 ### **Example Configuration**
 ```vhdl
--- Output A: Square wave, full amplitude, no frequency division
-control1 <= x"01000001";  -- pattern=1 (square), amp=255, freq_div=1
+-- Output A: Square wave (default), full amplitude, no frequency division
+control1 <= x"01000000";  -- pattern=0 (square), amp=255, freq_div=1
 
 -- Output B: Triangle wave, half amplitude, 4x slower
 control2 <= x"04000002";  -- pattern=2 (triangle), amp=128, freq_div=4

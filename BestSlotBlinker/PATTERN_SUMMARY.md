@@ -4,8 +4,8 @@
 
 | Pattern | Code | Description | Output Range |
 |---------|------|-------------|--------------|
-| 0000 | 0 | Sawtooth (linear ramp) | 0x0000 to 0xFFFF |
-| 0001 | 1 | Square wave (50% duty cycle) | 0x0000 or 0x7FFF |
+| 0000 | 0 | **Square wave (50% duty cycle) - DEFAULT** | 0x0000 or 0x7FFF |
+| 0001 | 1 | Sawtooth (linear ramp) | 0x0000 to 0xFFFF |
 | 0010 | 2 | Triangle wave (folded sawtooth) | 0x0000 to 0x7FFF |
 | 0011 | 3 | Sine approximation (16-step lookup) | 0x8000 to 0x7FFF |
 | 0100 | 4 | **Improved LFSR random** | 0x0000 to 0xFFFF |
