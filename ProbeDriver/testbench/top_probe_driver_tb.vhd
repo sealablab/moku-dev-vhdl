@@ -7,6 +7,7 @@ use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use IEEE.Std_Logic_TextIO.all;
 use STD.TextIO.all;
+use work.ProbeConfig_pkg.all;
 
 entity top_probe_driver_tb is
 end entity top_probe_driver_tb;
@@ -145,28 +146,55 @@ begin
         
         -- Test enable functionality
         control1(14) <= '1';  -- Enable
-        wait for CLK_PERIOD * 2;
+        wait for CLK_PERIOD * 3;  -- Wait for enable to take effect
         
-        -- Test trigger functionality
-        control1(13) <= '1';  -- Assert trigger
-        wait for CLK_PERIOD * 2;
-        control1(13) <= '0';  -- Deassert trigger
-        wait for CLK_PERIOD * 10;
-        
-        -- Test 3: Output Verification Test
-        write(line_var, string'("=== Test 3: Output Verification Test ==="));
+        -- Test 3: Output Verification Test (check ARMED state)
+        write(line_var, string'("=== Test 3: Output Verification Test (ARMED State) ==="));
         writeline(output, line_var);
         
-        -- Check OutputA (should show voltage value from IntensityLut when not firing)
-        -- Note: IntensityLut(85) = x"02A8" = 680 decimal
-        if outputA /= x"02A8" then
-            write(line_var, string'("ERROR: OutputA mismatch. Expected: x02A8 (680), Got: ") & 
+        -- Check OutputA (should show TopLevel status register in ARMED state: 0x0001)
+        if outputA /= x"0001" then
+            write(line_var, string'("ERROR: OutputA mismatch. Expected: x0001 (ARMED status), Got: ") & 
                   to_string(outputA));
             writeline(output, line_var);
             test_passed <= false;
             test_errors <= test_errors + 1;
         else
-            write(line_var, string'("PASS: OutputA correct (shows voltage value from IntensityLut)"));
+            write(line_var, string'("PASS: OutputA correct (shows ARMED status 0x0001)"));
+            writeline(output, line_var);
+        end if;
+        
+        -- Test trigger functionality
+        control1(13) <= '1';  -- Assert trigger
+        wait for CLK_PERIOD * 2;
+        control1(13) <= '0';  -- Deassert trigger
+        wait for CLK_PERIOD * 5;
+        
+        -- Test 4: Output Verification Test (check FIRING state)
+        write(line_var, string'("=== Test 4: Output Verification Test (FIRING State) ==="));
+        writeline(output, line_var);
+        
+        -- Check OutputA (should show TopLevel status register in FIRING state: 0x0003)
+        if outputA /= x"0003" then
+            write(line_var, string'("ERROR: OutputA mismatch. Expected: x0003 (FIRING status), Got: ") & 
+                  to_string(outputA));
+            writeline(output, line_var);
+            test_passed <= false;
+            test_errors <= test_errors + 1;
+        else
+            write(line_var, string'("PASS: OutputA correct (shows FIRING status 0x0003)"));
+            writeline(output, line_var);
+        end if;
+        
+        -- Check OutputB (should show ProbeTrigger_Threshold when firing)
+        if outputB /= ProbeTrigger_Threshold then
+            write(line_var, string'("ERROR: OutputB mismatch. Expected: ") & 
+                  to_string(ProbeTrigger_Threshold) & string'(", Got: ") & to_string(outputB));
+            writeline(output, line_var);
+            test_passed <= false;
+            test_errors <= test_errors + 1;
+        else
+            write(line_var, string'("PASS: OutputB correct (shows ProbeTrigger_Threshold when firing)"));
             writeline(output, line_var);
         end if;
         
@@ -176,8 +204,8 @@ begin
         
         wait for CLK_PERIOD * 5;
         
-        -- Test 4: Parameter Change Test
-        write(line_var, string'("=== Test 4: Parameter Change Test ==="));
+        -- Test 5: Parameter Change Test
+        write(line_var, string'("=== Test 5: Parameter Change Test ==="));
         writeline(output, line_var);
         
         -- Change intensity
@@ -192,8 +220,8 @@ begin
         control4 <= x"00000200";  -- 512 cycles
         wait for CLK_PERIOD * 3;
         
-        -- Test 5: Final Verification
-        write(line_var, string'("=== Test 5: Final Verification ==="));
+        -- Test 6: Final Verification
+        write(line_var, string'("=== Test 6: Final Verification ==="));
         writeline(output, line_var);
         
         -- Trigger again to see new parameters
@@ -203,13 +231,13 @@ begin
         wait for CLK_PERIOD * 15;
         
         -- Final status check
-        write(line_var, string'("Final OutputA: ") & to_string(outputA));
+        write(line_var, string'("Final OutputA (TopLevel Status): ") & to_string(outputA));
         writeline(output, line_var);
-        write(line_var, string'("Final OutputB: ") & to_string(outputB));
+        write(line_var, string'("Final OutputB (Trigger when firing): ") & to_string(outputB));
         writeline(output, line_var);
-        write(line_var, string'("Final OutputC: ") & to_string(outputC));
+        write(line_var, string'("Final OutputC (Intensity): ") & to_string(outputC));
         writeline(output, line_var);
-        write(line_var, string'("Final OutputD: ") & to_string(outputD));
+        write(line_var, string'("Final OutputD (Status & Control): ") & to_string(outputD));
         writeline(output, line_var);
         
         -- Test completion
