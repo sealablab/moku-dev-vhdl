@@ -1,5 +1,5 @@
 -- Top-Level Integration Testbench
--- Tests the complete top-level interface using top_probe_driver_improved.vhd
+-- Tests the complete top-level interface using top_probe_driver.vhd
 -- Validates the new CR0/CR1 control register layout
 
 library IEEE;
@@ -7,10 +7,10 @@ use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.ProbeConfig_pkg.all;
 
-entity top_probe_driver_improved_tb is
-end entity top_probe_driver_improved_tb;
+entity top_probe_driver_tb is
+end entity top_probe_driver_tb;
 
-architecture testbench of top_probe_driver_improved_tb is
+architecture testbench of top_probe_driver_tb is
   -- Clock period definition
   constant CLK_PERIOD : time := 10 ns;  -- 100MHz clock
   

@@ -7,13 +7,13 @@ GHDL_FLAGS = --std=08 --ieee=synopsys
 
 # Testbench files
 TB_UNIT = probe_driver_tb.vhd
-TB_INTEGRATION = top_probe_driver_improved_tb.vhd
+TB_INTEGRATION = top_probe_driver_tb.vhd
 
 # DUT files for unit test (ProbeDriver only)
 DUT_FILES_UNIT = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
 
 # DUT files for integration test (complete top-level)
-DUT_FILES_INTEGRATION = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd ../CustomWrapper.vhd ../top_probe_driver_improved.vhd
+DUT_FILES_INTEGRATION = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd ../CustomWrapper.vhd ../top_probe_driver.vhd
 
 # Default target
 all: test_all
@@ -61,14 +61,14 @@ compile_integration:
 	@echo "Compiling testbench..."
 	$(GHDL) -a $(GHDL_FLAGS) $(TB_INTEGRATION)
 	@echo "Elaborating testbench..."
-	$(GHDL) -e $(GHDL_FLAGS) top_probe_driver_improved_tb
+	$(GHDL) -e $(GHDL_FLAGS) top_probe_driver_tb
 
 # Run integration test
 run_integration: compile_integration
 	@echo "========================================"
 	@echo "Running Top-Level Integration Test..."
 	@echo "========================================"
-	$(GHDL) -r $(GHDL_FLAGS) top_probe_driver_improved_tb --stop-time=3000ns --vcd=integration_test.vcd
+	$(GHDL) -r $(GHDL_FLAGS) top_probe_driver_tb --stop-time=3000ns --vcd=integration_test.vcd
 
 # =============================================================================
 # COMBINED TARGETS
