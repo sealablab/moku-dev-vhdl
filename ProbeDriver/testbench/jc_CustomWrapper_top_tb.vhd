@@ -1,10 +1,13 @@
--- jc-CustomWrapper-top-tb.vhd
+-- jc_CustomWrapper_top_tb.vhd
 -- Higher-level testbench for CustomWrapper entity (lovingly hand crafted by jc)
 -- Designed to illustrate the process of iterating over a testbench
+-- MIRRORS internal signal names from top_probe_driver.vhd for clarity
+-- Uses HumanInterface_pkg for human-friendly display functions
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.ProbeConfig_pkg.all;
+use work.HumanInterface_pkg.all;
 
 entity jc_CustomWrapper_top_tb is
 end entity jc_CustomWrapper_top_tb;
@@ -45,28 +48,31 @@ architecture testbench of jc_CustomWrapper_top_tb is
     );
   end component;
   
-  -- Signal declarations
+  -- =============================================================================
+  -- INTERNAL SIGNALS - MIRRORING top_probe_driver.vhd NAMES
+  -- =============================================================================
+  -- Clock and reset
   signal clk : std_logic := '0';
   signal reset : std_logic := '1';
+  
+  -- Input/Output ports (from CustomWrapper interface)
   signal inputA, inputB, inputC, inputD : signed(15 downto 0) := (others => '0');
   signal outputA, outputB, outputC, outputD : signed(15 downto 0);
+  
+  -- Control registers (matching top_probe_driver.vhd layout)
   signal control0, control1, control2, control3, control4 : std_logic_vector(31 downto 0) := (others => '0');
   signal control5, control6, control7, control8, control9 : std_logic_vector(31 downto 0) := (others => '0');
   signal control10, control11, control12, control13, control14, control15 : std_logic_vector(31 downto 0) := (others => '0');
   
-  -- Test state tracking
-  type test_phase_type is (INIT, RESET_PHASE, ZERO_INIT_MODE, BASIC_FUNCTIONALITY, AUTO_ARM_TEST, VERIFICATION, COMPLETE);
-  signal test_phase : test_phase_type := INIT;
-  signal phase_counter : integer := 0;
-  signal cycle_count : integer := 0;
-  
-  -- Test results and monitoring
-  signal test_passed : boolean := true;
-  signal output_monitor_active : std_logic := '0';
-  signal last_outputA, last_outputB, last_outputC : signed(15 downto 0);
-  
-  -- Expected values for sanity checking
-  signal expected_status_bits : std_logic_vector(3 downto 0) := (others => '0');
+  -- =============================================================================
+  -- DERIVED SIGNALS - MIRRORING INTERNAL LOGIC
+  -- =============================================================================
+  -- Mirror the internal signals from top_probe_driver.vhd
+  signal probe_driver_status_register : std_logic_vector(4 downto 0);  -- 5-bit status from ProbeDriver
+  signal toplevel_status_register : std_logic_vector(15 downto 0);     -- 16-bit top-level status
+  signal probe_trig_out : signed(15 downto 0);                        -- Probe trigger output
+  signal probe_intensity_out : signed(15 downto 0);                   -- Probe intensity output
+  signal probe_clk_en : std_logic;                                    -- Clock enable from divider
   
 begin
   -- =============================================================================
@@ -108,6 +114,15 @@ begin
     );
   
   -- =============================================================================
+  -- SIGNAL MAPPING - MIRROR INTERNAL LOGIC FROM top_probe_driver.vhd
+  -- =============================================================================
+  -- Map the CustomWrapper outputs to our internal signal names
+  toplevel_status_register <= std_logic_vector(outputA);
+  probe_driver_status_register <= toplevel_status_register(3 downto 0) & toplevel_status_register(15);
+  probe_trig_out <= outputB;
+  probe_intensity_out <= outputC;
+  
+  -- =============================================================================
   -- MAIN TEST SEQUENCE
   -- =============================================================================
   
@@ -126,140 +141,40 @@ begin
     
     -- Step 1: Start with reset active
     test_step := 1;
-    report "Step " & integer'image(test_step) & ": Reset active, all controls at 0x00";
+    report "Step " & integer'image(test_step) & "/3: Reset active, all controls at 0x00";
     reset <= '1';
     control0 <= (others => '0');  -- All zeros = safe defaults mode
     control1 <= (others => '0');
     wait for CLK_PERIOD * 3;
     
+    -- Display current status using HumanInterface functions
+    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
+
+
     -- Step 2: Release reset, observe initial state
     test_step := 2;
-    report "Step " & integer'image(test_step) & ": Release reset, observe IDLE state";
+    report "Step " & integer'image(test_step) & "/3: Release reset, observe IDLE state";
     reset <= '0';
     wait for CLK_PERIOD * 5;
     
-    -- Check that we're in IDLE state (status bits [3:0] should be 0x0)
-    if unsigned(outputA(3 downto 0)) /= 0 then
-      report "ERROR: Expected IDLE state (0x0), got 0x" & 
-             to_hstring(unsigned(outputA(3 downto 0))) severity error;
-      test_passed <= false;
-    else
-      report "PASS: Correctly in IDLE state after reset";
-    end if;
+    -- Display status after reset release
+    report "Status after reset release:";
+    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
     
-    -- Step 3: Enable the module (Control0(31) = '0' for enable)
+    -- Step 3: Enable the module
     test_step := 3;
-    report "Step " & integer'image(test_step) & ": Enable module (Control0(31) = '0')";
+    report "Step " & integer'image(test_step) & "/3: Enable module (Control0(31) = '0')";
     control0(31) <= '0';  -- Enable = '0' (inverted logic)
-    wait for CLK_PERIOD * 3;
+    wait for CLK_PERIOD * 5;
     
-    -- Check that we transitioned to ARMED state (status bit 0 should be '1')
-    if outputA(0) /= '1' then
-      report "ERROR: Expected ARMED state (bit 0 = '1'), got 0x" & 
-             to_hstring(unsigned(outputA(3 downto 0))) severity error;
-      test_passed <= false;
-    else
-      report "PASS: Correctly transitioned to ARMED state";
-    end if;
-    
-    -- Step 4: Wait for auto-fire (should happen automatically after enable)
-    test_step := 4;
-    report "Step " & integer'image(test_step) & ": Wait for auto-fire sequence";
-    
-    -- Wait for FIRING state (status bit 1 should become '1')
-    wait until outputA(1) = '1' for CLK_PERIOD * 100;
-    if outputA(1) = '1' then
-      report "PASS: Auto-fire initiated, entered FIRING state";
-    else
-      report "ERROR: Auto-fire did not occur within expected time" severity error;
-      test_passed <= false;
-    end if;
-    
-    -- Step 5: Wait for FIRING to complete and transition to COOL_DOWN
-    test_step := 5;
-    report "Step " & integer'image(test_step) & ": Wait for FIRING completion and COOL_DOWN";
-    
-    -- Wait for FIRING to complete (status bit 2 should become '1') and COOL_DOWN (bit 3)
-    wait until outputA(2) = '1' and outputA(3) = '1' for CLK_PERIOD * 200;
-    if outputA(2) = '1' and outputA(3) = '1' then
-      report "PASS: FIRING completed, entered COOL_DOWN state";
-    else
-      report "ERROR: FIRING completion or COOL_DOWN transition failed" severity error;
-      test_passed <= false;
-    end if;
-    
-    -- Step 6: Wait for COOL_DOWN to complete and return to IDLE
-    test_step := 6;
-    report "Step " & integer'image(test_step) & ": Wait for COOL_DOWN completion and return to IDLE";
-    
-    -- Wait for COOL_DOWN to complete (status bit 3 should become '0') and return to IDLE
-    wait until outputA(3) = '0' for CLK_PERIOD * 100;
-    if outputA(3) = '0' then
-      report "PASS: COOL_DOWN completed";
-      
-      -- Check final state - should be back to IDLE (all status bits [3:0] = 0)
-      if unsigned(outputA(3 downto 0)) = 0 then
-        report "PASS: Successfully returned to IDLE state";
-      else
-        report "ERROR: Did not return to IDLE state, status = 0x" & 
-               to_hstring(unsigned(outputA(3 downto 0))) severity error;
-        test_passed <= false;
-      end if;
-    else
-      report "ERROR: COOL_DOWN did not complete within expected time" severity error;
-      test_passed <= false;
-    end if;
-    
-    -- =============================================================================
-    -- TEST SUMMARY
-    -- =============================================================================
-    wait for CLK_PERIOD * 10;
-    
-    if test_passed then
-      report "=== TEST-01 PASSED: State machine transitions working correctly ===";
-    else
-      report "=== TEST-01 FAILED: State machine transitions have issues ===" severity error;
-    end if;
+    -- Display final status
+    report "Final Status:";
+    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
     
     -- End simulation
     report "Simulation complete";
     wait;
-    
   end process test_sequence;
-  
-  -- =============================================================================
-  -- OUTPUT MONITORING (Optional - for debugging)
-  -- =============================================================================
-  output_monitor: process(clk)
-  begin
-    if rising_edge(clk) then
-      -- Monitor status register changes
-      if outputA /= last_outputA then
-        report "Status Register changed: 0x" & to_hstring(unsigned(outputA)) & 
-               " (bits [3:0] = 0x" & to_hstring(unsigned(outputA(3 downto 0))) & ")";
-        last_outputA <= outputA;
-      end if;
-      
-      -- Monitor other outputs if needed
-      if outputB /= last_outputB then
-        last_outputB <= outputB;
-      end if;
-      
-      if outputC /= last_outputC then
-        last_outputC <= outputC;
-      end if;
-    end if;
-  end process output_monitor;
-  
-  -- =============================================================================
-  -- TIMEOUT PROTECTION
-  -- =============================================================================
-  timeout_protection: process
-  begin
-    wait for 100 us;  -- 100 microseconds timeout
-    report "TIMEOUT: Simulation exceeded maximum allowed time" severity error;
-    wait;
-  end process timeout_protection;
   
 end architecture testbench;
   

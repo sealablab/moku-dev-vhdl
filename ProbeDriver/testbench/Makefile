@@ -21,6 +21,7 @@ SOURCES := \
 	../ProbeDriver.vhd \
 	../CustomWrapper.vhd \
 	../top_probe_driver.vhd \
+	HumanInterface_pkg.vhd \
 	$(TB).vhd
 
 # Default target
@@ -35,6 +36,7 @@ analyze: $(SOURCES)
 	$(GHDL) -a --std=08 --work=work ../ProbeDriver.vhd
 	$(GHDL) -a --std=08 --work=work ../CustomWrapper.vhd
 	$(GHDL) -a --std=08 --work=work ../top_probe_driver.vhd
+	$(GHDL) -a --std=08 --work=work HumanInterface_pkg.vhd
 	$(GHDL) -a --std=08 --work=work $(TB).vhd
 	@echo "=== Analysis complete ==="
 

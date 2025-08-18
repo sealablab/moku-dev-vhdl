@@ -60,6 +60,7 @@ ghdl -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
 ghdl -a --std=08 --work=work ../ProbeDriver.vhd
 ghdl -a --std=08 --work=work ../CustomWrapper.vhd
 ghdl -a --std=08 --work=work ../top_probe_driver.vhd
+ghdl -a --std=08 --work=work HumanInterface_pkg.vhd
 ghdl -a --std=08 --work=work jc_CustomWrapper_top_tb.vhd
 
 # 2. Elaborate (link) the testbench
@@ -121,5 +122,6 @@ This testbench demonstrates the basic approach. You can extend it by:
 
 ## Files in This Test
 - `jc_CustomWrapper_top_tb.vhd` - Main testbench file
+- `HumanInterface_pkg.vhd` - Human-friendly display and decoding functions
 - `Makefile` - Simple build system for GHDL
-- `README-jc-CustomWrapper-top-tb.md` - This documentation file
+- `README-jc_CustomWrapper_top_tb.md` - This documentation file
