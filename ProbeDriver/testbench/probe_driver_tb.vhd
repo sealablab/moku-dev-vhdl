@@ -17,6 +17,7 @@ architecture testbench of probe_driver_tb is
   signal reset : std_logic := '1';
   signal enable : std_logic := '0';
   signal trig_in : std_logic := '0';
+  signal auto_arm : std_logic := '0';  -- NEW: Auto-arm test signal
   
   -- Input test values (using NEW bit widths)
   signal Intensity_index : std_logic_vector(6 downto 0) := "0110010";  -- 50 (valid)
@@ -50,6 +51,7 @@ begin
       reset          => reset,
       enable         => enable,
       trig_in        => trig_in,
+      auto_arm       => auto_arm,      -- NEW: Auto-arm test signal
       Intensity_index   => Intensity_index,
       PulseDuration_in  => PulseDuration_in,
       CoolDown_in       => CoolDown_in,
@@ -105,21 +107,27 @@ begin
     CoolDown_in <= x"0020";  -- 32 cycles (>= minimum 24)
     wait for CLK_PERIOD * 2;
     
-    -- Test 8: Final trigger test
+    -- Test 8: Test auto-arm functionality
     test_step <= 8;
-    report "Test 8: Final trigger test";
+    report "Test 8: Test auto-arm functionality";
+    auto_arm <= '1';  -- Enable auto-arm
+    wait for CLK_PERIOD * 2;
+    
+    -- Test 9: Final trigger test
+    test_step <= 9;
+    report "Test 9: Final trigger test";
     trig_in <= '1';
     wait for CLK_PERIOD;
     trig_in <= '0';
     
-    -- Test 9: Wait for completion
-    test_step <= 9;
-    report "Test 9: Wait for completion";
+    -- Test 10: Wait for completion and verify auto-arm behavior
+    test_step <= 10;
+    report "Test 10: Wait for completion and verify auto-arm behavior";
     wait for CLK_PERIOD * 100;
     
-    -- Test 10: Summary
-    test_step <= 10;
-    report "Test 10: Testbench completed";
+    -- Test 11: Summary
+    test_step <= 11;
+    report "Test 11: Testbench completed";
     if test_passed then
       report "PASS: All tests completed successfully";
     else
