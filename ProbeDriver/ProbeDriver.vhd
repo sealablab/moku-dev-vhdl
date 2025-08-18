@@ -97,7 +97,9 @@ begin
       if zeroinit_mode = '1' then
         -- In zeroinit mode, use safe default values directly
         Intensity <= (others => '0');  -- Safe zero intensity (IntensityLut(0) = 0x0000)
-        -- PulseDuration and CoolDown will use constants directly in state machine
+        PulseDuration <= PulseMinDuration;  -- Use safe constant in zeroinit mode
+        CoolDown <= ProbeCoolDownMin;  -- Use safe constant in zeroinit mode
+        -- Internal signals now contain appropriate values for all modes
       else
         -- Normal mode: use input values
         Intensity <= unsigned(Intensity_index);
@@ -119,12 +121,8 @@ begin
           -- Wait for trigger input OR auto-advance in zeroinit mode
           if trig_in = '1' or (zeroinit_mode = '1') then
             current_state <= FIRING;
-            -- Initialize pulse counter to duration value
-            if zeroinit_mode = '1' then
-              pulse_counter <= PulseMinDuration;  -- Use safe constant in zeroinit mode
-            else
-              pulse_counter <= PulseDuration;     -- Use input value in normal mode
-            end if;
+            -- Initialize pulse counter to duration value (already set correctly based on mode)
+            pulse_counter <= PulseDuration;
             status_reg(1) <= '1';  -- Set bit 1 when entering FIRING
             -- Clear zeroinit one-shot so it doesn't retrigger
             zeroinit_mode <= '0';
@@ -148,21 +146,11 @@ begin
           status_reg(3) <= '1';  -- Set bit 3 when entering COOL_DOWN
           
         when COOL_DOWN =>
-          -- Wait for cooldown period
-          if zeroinit_mode = '1' then
-            -- In zeroinit mode, use safe constant
-            if cooldown_counter >= ProbeCoolDownMin then
-              current_state <= IDLE;
-            else
-              cooldown_counter <= cooldown_counter + 1;
-            end if;
+          -- Wait for cooldown period (CoolDown already set correctly based on mode)
+          if cooldown_counter >= CoolDown then
+            current_state <= IDLE;
           else
-            -- In normal mode, use input cooldown
-            if cooldown_counter >= CoolDown then
-              current_state <= IDLE;
-            else
-              cooldown_counter <= cooldown_counter + 1;
-            end if;
+            cooldown_counter <= cooldown_counter + 1;
           end if;
           
         when others =>
