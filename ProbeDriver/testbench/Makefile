@@ -10,6 +10,7 @@ TB_UNIT = probe_driver_tb.vhd
 TB_INTEGRATION = top_probe_driver_tb.vhd
 TB_CUSTOMWRAPPER_TOP = CustomWrapper-top-tb.vhd
 TB_CLOCK_DIVIDER_INTEGRATION = clock_divider_integration_tb.vhd
+TB_COMPREHENSIVE_TOP = comprehensive_top_level_tb.vhd
 
 # DUT files for unit test (ProbeDriver only)
 DUT_FILES_UNIT = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
@@ -125,11 +126,37 @@ run_clock_divider_integration: compile_clock_divider_integration
 	$(GHDL) -r $(GHDL_FLAGS) clock_divider_integration_tb --stop-time=10000ns --vcd=clock_divider_integration.vcd
 
 # =============================================================================
+# COMPREHENSIVE TOP-LEVEL TEST TARGETS
+# =============================================================================
+
+# Compile and run comprehensive top-level test
+test_comprehensive_top: compile_comprehensive_top run_comprehensive_top
+
+# Compile comprehensive top-level test files
+compile_comprehensive_top:
+	@echo "========================================"
+	@echo "Compiling Comprehensive Top-Level Test..."
+	@echo "========================================"
+	@echo "Compiling DUT files..."
+	$(GHDL) -a $(GHDL_FLAGS) ../IntensityLut.vhd ../ProbeConfig.vhd ../../clk-divider/clk_divider.vhd ../ProbeDriver.vhd ../CustomWrapper.vhd ../top_probe_driver.vhd
+	@echo "Compiling testbench..."
+	$(GHDL) -a $(GHDL_FLAGS) $(TB_COMPREHENSIVE_TOP)
+	@echo "Elaborating testbench..."
+	$(GHDL) -e $(GHDL_FLAGS) comprehensive_top_level_tb
+
+# Run comprehensive top-level test
+run_comprehensive_top: compile_comprehensive_top
+	@echo "========================================"
+	@echo "Running Comprehensive Top-Level Test..."
+	@echo "========================================"
+	$(GHDL) -r $(GHDL_FLAGS) comprehensive_top_level_tb --stop-time=50000ns --vcd=comprehensive_top_level.vcd
+
+# =============================================================================
 # COMBINED TARGETS
 # =============================================================================
 
 # Run all tests
-test_all: test_unit test_integration test_customwrapper_top test_clock_divider_integration
+test_all: test_unit test_integration test_customwrapper_top test_clock_divider_integration test_comprehensive_top
 	@echo "========================================"
 	@echo "All tests completed!"
 	@echo "========================================"
@@ -152,6 +179,7 @@ help:
 	@echo "  test_integration              - Run integration tests only"
 	@echo "  test_customwrapper_top        - Run CustomWrapper top testbench only"
 	@echo "  test_clock_divider_integration - Run clock divider integration test only"
+	@echo "  test_comprehensive_top        - Run comprehensive top-level test only"
 	@echo "  test_all                      - Run all tests"
 	@echo "  clean                         - Remove generated files"
 	@echo "  help                          - Show this help message"
@@ -164,4 +192,4 @@ help:
 	@echo "  make clean                 # Clean up"
 
 # Phony targets
-.PHONY: all test_unit test_integration test_customwrapper_top test_clock_divider_integration test_all clean help compile_unit run_unit compile_integration run_integration compile_customwrapper_top run_customwrapper_top compile_clock_divider_integration run_clock_divider_integration
+.PHONY: all test_unit test_integration test_customwrapper_top test_clock_divider_integration test_comprehensive_top test_all clean help compile_unit run_unit compile_integration run_integration compile_customwrapper_top run_customwrapper_top compile_clock_divider_integration run_clock_divider_integration compile_comprehensive_top run_comprehensive_top
