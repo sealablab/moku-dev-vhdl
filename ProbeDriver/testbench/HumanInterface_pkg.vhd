@@ -206,14 +206,14 @@ package body HumanInterface_pkg is
   
   function probe_state_to_string(bits : std_logic_vector(3 downto 0)) return string is
   begin
-    case bits is
-      when "0001" => return "ARMED";
-      when "0010" => return "FIRING";
-      when "0100" => return "PULSE_COMPLETE";
-      when "1000" => return "COOL_DOWN";
-      when "0000" => return "IDLE";
-      when others => return "UNKNOWN_STATE";
-    end case;
+    -- Check for active states using logical OR (any bit high indicates that state is active)
+    if bits(0) = '1' then return "ARMED";
+    elsif bits(1) = '1' then return "FIRING";
+    elsif bits(2) = '1' then return "PULSE_COMPLETE";
+    elsif bits(3) = '1' then return "COOL_DOWN";
+    elsif bits = "0000" then return "IDLE";
+    else return "UNKNOWN_STATE";
+    end if;
   end function;
   
   function decode_probe_status(status : std_logic_vector(4 downto 0)) return string is
@@ -241,7 +241,6 @@ package body HumanInterface_pkg is
   function make_header(title : string; width : integer := 60) return string is
     variable header : string(1 to width);
     variable title_start : integer;
-    variable i : integer;
   begin
     for i in 1 to width loop
       header(i) := '-';
@@ -253,7 +252,6 @@ package body HumanInterface_pkg is
   
   function make_separator(width : integer := 60) return string is
     variable separator : string(1 to width);
-    variable i : integer;
   begin
     for i in 1 to width loop
       separator(i) := '-';
