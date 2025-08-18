@@ -35,7 +35,7 @@ entity probe_driver is
     -- Note: These output registers are only written during Reset.
     trig_out         : out signed(15 downto 0);
     intensity_out    : out signed(15 downto 0);
-    status_register  : out std_logic_vector(4 downto 0)
+    status_register  : out std_logic_vector(15 downto 0)
     -- End Probe Driver 'API'
   );
 end entity;
@@ -64,7 +64,7 @@ architecture rtl of probe_driver is
   signal Intensity : unsigned(6 downto 0);
   
   -- Status register - Modified to track fired status without FIRED state
-  signal status_reg : std_logic_vector(4 downto 0) := (others => '0');
+  signal status_reg : std_logic_vector(15 downto 0) := (others => '0');
   
   -- Safe defaults logic: when inputs are 0x00, use safe minimum values
   

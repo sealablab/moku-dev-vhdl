@@ -21,10 +21,8 @@ architecture Behavioural of CustomWrapper is
     -- Internal signals for probe driver outputs
     signal probe_trig_out : signed(15 downto 0);
     signal probe_intensity_out : signed(15 downto 0);
-    -- ProbeDriverStatusRegister (PDSR)
-    signal probe_driver_status_register : std_logic_vector(4 downto 0);
-    -- TopLevel Status Register (16 bits)
-    signal toplevel_status_register : std_logic_vector(15 downto 0);
+    -- ProbeDriverStatusRegister (PDSR) - Expanded to 16 bits
+    signal probe_driver_status_register : std_logic_vector(15 downto 0);
     -- NEW: Clock divider signals
     signal probe_clk_en : std_logic;
 begin
@@ -106,25 +104,14 @@ begin
     -- =============================================================================
     
     -- =============================================================================
-    -- TOPLEVEL STATUS REGISTER CONSTRUCTION
-    -- =============================================================================
-    -- Construct 16-bit TopLevel status register
-    -- [15] = Error bit (probe driver status register bit 4)
-    -- [14:4] = Reserved for future use (set to 0)
-    -- [3:0] = Probe driver status register bits [3:0] (state machine status)
-    toplevel_status_register <= probe_driver_status_register(4) & 
-                               "00000000000" & 
-                               probe_driver_status_register(3 downto 0);
-    
-    -- =============================================================================
     -- OUTPUT ASSIGNMENTS
     -- =============================================================================
-    -- OutputA: TopLevel status register (16 bits)
-    -- [15] = Error bit, [14:4] = Reserved, [3:0] = State machine status
-    OutputA <= signed(toplevel_status_register);
+    -- OutputA: Direct mapping of expanded probe driver status register (16 bits)
+    -- [15:5] = Reserved for future use (set to 0), [4:0] = State machine status
+    OutputA <= signed(probe_driver_status_register);
     
     -- OutputB: Show ProbeTrigger_Threshold when firing bit (bit 1) is set in status register
-    OutputB <= ProbeTrigger_Threshold when toplevel_status_register(1) = '1' else (others => '0');
+    OutputB <= ProbeTrigger_Threshold when probe_driver_status_register(1) = '1' else (others => '0');
     
     -- OutputC: Probe intensity output (only valid during FIRING state, otherwise shows 0)
     OutputC <= probe_intensity_out;

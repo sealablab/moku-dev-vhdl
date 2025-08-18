@@ -63,8 +63,7 @@ package HumanInterface_pkg is
   
   -- Display complete system status in a formatted block
   function display_system_status(ctrl0, ctrl1 : std_logic_vector(31 downto 0);
-                                toplevel_status : std_logic_vector(15 downto 0);
-                                probe_status : std_logic_vector(4 downto 0)) return string;
+                                status_register : std_logic_vector(15 downto 0)) return string;
   
   -- =============================================================================
   -- CLOCK DIVIDER DECODING
@@ -274,14 +273,12 @@ package body HumanInterface_pkg is
   end function;
   
   function display_system_status(ctrl0, ctrl1 : std_logic_vector(31 downto 0);
-                                toplevel_status : std_logic_vector(15 downto 0);
-                                probe_status : std_logic_vector(4 downto 0)) return string is
+                                status_register : std_logic_vector(15 downto 0)) return string is
   begin
     return  LF & "-----------------Status-------------------" & LF &
         "Control0: " & decode_control0(ctrl0) & LF &
            "Control1: " & decode_control1(ctrl1) & LF &
-           "TopLevel: " & decode_toplevel_status(toplevel_status) & LF &
-           "ProbeDrv: " & decode_probe_status(probe_status) & LF &
+           "Status: " & decode_toplevel_status(status_register) & LF &
                  "------------------------------------------" & LF;
 
   end function;

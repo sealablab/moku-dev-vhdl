@@ -35,7 +35,7 @@ architecture testbench of clock_divider_integration_tb is
             CoolDown_in       : in  std_logic_vector(15 downto 0);
             trig_out          : out signed(15 downto 0);
             intensity_out     : out signed(15 downto 0);
-            status_register   : out std_logic_vector(4 downto 0)
+            status_register   : out std_logic_vector(15 downto 0)
         );
     end component;
     
@@ -53,7 +53,7 @@ architecture testbench of clock_divider_integration_tb is
     -- ProbeDriver outputs
     signal trig_out       : signed(15 downto 0);
     signal intensity_out  : signed(15 downto 0);
-    signal status_register: std_logic_vector(4 downto 0);
+    signal status_register: std_logic_vector(15 downto 0);
     
     -- Test parameters
     signal Intensity_index   : std_logic_vector(6 downto 0) := "0000001";  -- Minimum intensity

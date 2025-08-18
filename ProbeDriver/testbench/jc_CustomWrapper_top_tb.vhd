@@ -68,8 +68,8 @@ architecture testbench of jc_CustomWrapper_top_tb is
   -- DERIVED SIGNALS - MIRRORING INTERNAL LOGIC
   -- =============================================================================
   -- Mirror the internal signals from top_probe_driver.vhd
-  signal probe_driver_status_register : std_logic_vector(4 downto 0);  -- 5-bit status from ProbeDriver
-  signal toplevel_status_register : std_logic_vector(15 downto 0);     -- 16-bit top-level status
+  signal probe_driver_status_register : std_logic_vector(15 downto 0); -- 16-bit status from ProbeDriver
+  signal toplevel_status_register : std_logic_vector(15 downto 0);     -- 16-bit top-level status (same as probe_driver_status_register)
   signal probe_trig_out : signed(15 downto 0);                        -- Probe trigger output
   signal probe_intensity_out : signed(15 downto 0);                   -- Probe intensity output
   signal probe_clk_en : std_logic;                                    -- Clock enable from divider
@@ -118,7 +118,7 @@ begin
   -- =============================================================================
   -- Map the CustomWrapper outputs to our internal signal names
   toplevel_status_register <= std_logic_vector(outputA);
-  probe_driver_status_register <= toplevel_status_register(3 downto 0) & toplevel_status_register(15);
+  probe_driver_status_register <= toplevel_status_register;  -- Direct mapping - both are now 16-bit
   probe_trig_out <= outputB;
   probe_intensity_out <= outputC;
   
@@ -148,7 +148,7 @@ begin
     wait for CLK_PERIOD * 3;
     
     -- Display current status using HumanInterface functions
-    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
+    report display_system_status(control0, control1, toplevel_status_register);
 
 
     -- Step 2: Release reset, observe initial state
@@ -159,7 +159,7 @@ begin
     
     -- Display status after reset release
     report "Status after reset release:";
-    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
+    report display_system_status(control0, control1, toplevel_status_register);
     
     -- Step 3: Enable the module
     test_step := 3;
@@ -169,7 +169,7 @@ begin
     
     -- Display final status
     report "Final Status:";
-    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
+    report display_system_status(control0, control1, toplevel_status_register);
     
     -- End simulation
     report "Simulation complete";

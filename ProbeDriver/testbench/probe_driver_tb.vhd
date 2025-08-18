@@ -28,7 +28,7 @@ architecture testbench of probe_driver_tb is
   -- Output signals from DUT
   signal trig_out : signed(15 downto 0);
   signal intensity_out : signed(15 downto 0);
-  signal status_register : std_logic_vector(4 downto 0);
+  signal status_register : std_logic_vector(15 downto 0);
   
   -- Clock period
   constant CLK_PERIOD : time := 10 ns;  -- 100MHz clock
