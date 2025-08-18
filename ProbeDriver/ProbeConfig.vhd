@@ -18,9 +18,9 @@ package ProbeConfig_pkg is
   constant ProbeTrigger_Threshold : signed(15 downto 0) := x"4000";  -- 2.5V threshold constant
   
   -- Timing configuration constants
-  constant PulseMinDuration : unsigned(15 downto 0) := to_unsigned(16, 16);      -- Minimum pulse duration (clock cycles) - INCLUSIVE
+  constant PulseMinDuration : unsigned(15 downto 0) := to_unsigned(2, 16);      -- Minimum pulse duration (clock cycles) - INCLUSIVE
   constant PulseMaxDuration : unsigned(15 downto 0) := to_unsigned(1024, 16);     -- Maximum pulse duration (clock cycles) - INCLUSIVE
-  constant ProbeCoolDownMin : unsigned(15 downto 0) := to_unsigned(24, 16);      -- Probe cool down period (clock cycles) - INCLUSIVE
+  constant ProbeCoolDownMin : unsigned(15 downto 0) := to_unsigned(14, 16);      -- Probe cool down period (clock cycles) - INCLUSIVE
   
   -- =============================================================================
   -- CONFIGURATION VALIDATION CONSTANTS
