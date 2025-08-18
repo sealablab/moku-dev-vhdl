@@ -25,7 +25,7 @@ package IntensityLut_pkg is
     -- 0% = 0V (off - safe zero intensity)
     x"0000",
     -- 1% = smallest observable output (MinIntensity - safe minimum)
-    x"0008",
+    x"0240",
     -- 2% to 9% (0.066V to 0.297V)
     x"0010", x"0018", x"0020", x"0028", x"0030", x"0038", x"0040", x"0048",
     -- 10% to 19% (0.33V to 0.627V)
