@@ -1,0 +1,158 @@
+# Makefile.example - Example of using the standardized Makefile template
+# This shows how to customize the template for a specific module
+
+# =============================================================================
+# CONFIGURATION - CUSTOMIZED FOR THIS EXAMPLE
+# =============================================================================
+
+# Module name (customized for this example)
+MODULE_NAME := ExampleUsage
+
+# Testbench entity name (customized for this example)
+TB_ENTITY := example_usage_tb
+
+# GHDL compiler and flags (standardized across all modules)
+GHDL := ghdl
+GHDL_FLAGS := --std=08 --ieee=synopsys
+
+# =============================================================================
+# SOURCE FILES - CUSTOMIZED FOR THIS EXAMPLE
+# =============================================================================
+
+# MokuModules package (always include this first)
+MOKU_MODULES := MokuModules_pkg.vhd
+
+# Your module source files (in dependency order) - none for this example
+MODULE_SOURCES :=
+
+# Testbench file
+TB_FILE := $(TB_ENTITY).vhd
+
+# All source files for compilation
+ALL_SOURCES := $(MOKU_MODULES) $(MODULE_SOURCES) $(TB_FILE)
+
+# =============================================================================
+# BUILD TARGETS
+# =============================================================================
+
+# Default target
+all: test
+
+# =============================================================================
+# COMPILATION TARGETS
+# =============================================================================
+
+# Compile all files
+compile: $(ALL_SOURCES)
+	@echo "========================================"
+	@echo "Compiling $(MODULE_NAME) module..."
+	@echo "========================================"
+	@echo "Compiling MokuModules package..."
+	$(GHDL) -a $(GHDL_FLAGS) $(MOKU_MODULES)
+	@echo "Compiling module sources..."
+	@for file in $(MODULE_SOURCES); do \
+		echo "Compiling $$file..."; \
+		$(GHDL) -a $(GHDL_FLAGS) $$file; \
+		if [ $$? -eq 0 ]; then \
+			echo "✓ $$(basename $$file .vhd) compiled successfully"; \
+		else \
+			echo "✗ $$(basename $$file .vhd) compilation failed"; \
+			exit 1; \
+		fi; \
+	done
+	@echo "Compiling testbench..."
+	$(GHDL) -a $(GHDL_FLAGS) $(TB_FILE)
+	@echo "Elaborating testbench..."
+	$(GHDL) -e $(GHDL_FLAGS) $(TB_ENTITY)
+	@echo "✓ Build complete"
+
+# =============================================================================
+# TESTING TARGETS
+# =============================================================================
+
+# Run tests (default)
+test: compile run_test
+
+# Run the testbench
+run_test: compile
+	@echo "========================================"
+	@echo "Running $(MODULE_NAME) testbench..."
+	@echo "========================================"
+	$(GHDL) -r $(GHDL_FLAGS) $(TB_ENTITY) --stop-time=2000ns --vcd=$(TB_ENTITY).vcd
+	@echo "✓ Testbench simulation complete"
+	@echo "✓ VCD file '$(TB_ENTITY).vcd' created"
+
+# Run with waveform output (for GTKWave)
+wave: run_test
+	@echo "========================================"
+	@echo "Opening waveform viewer..."
+	@echo "========================================"
+	@if command -v gtkwave >/dev/null 2>&1; then \
+		gtkwave $(TB_ENTITY).vcd; \
+	else \
+		echo "GTKWave not found. Install it to view waveforms:"; \
+		echo "  macOS: brew install gtkwave"; \
+		echo "  Ubuntu: sudo apt-get install gtkwave"; \
+		echo "  Windows: Download from http://gtkwave.sourceforge.net/"; \
+		echo ""; \
+		echo "To view waveforms manually: gtkwave $(TB_ENTITY).vcd"; \
+	fi
+
+# =============================================================================
+# UTILITY TARGETS
+# =============================================================================
+
+# Check syntax only
+syntax_check: $(ALL_SOURCES)
+	@echo "========================================"
+	@echo "Checking VHDL syntax for $(MODULE_NAME)..."
+	@echo "========================================"
+	@for file in $(ALL_SOURCES); do \
+		echo "Checking $$file..."; \
+		$(GHDL) -s $(GHDL_FLAGS) $$file; \
+		if [ $$? -eq 0 ]; then \
+			echo "✓ $$(basename $$file .vhd) syntax OK"; \
+		else \
+			echo "✗ $$(basename $$file .vhd) syntax errors"; \
+			exit 1; \
+		fi; \
+	done
+	@echo "✓ All files have valid syntax"
+
+# Clean build artifacts
+clean:
+	@echo "========================================"
+	@echo "Cleaning $(MODULE_NAME) build artifacts..."
+	@echo "========================================"
+	rm -f *.o *.cf work-obj93.cf work-obj08.cf $(TB_ENTITY) *.vcd *.ghw
+	@echo "✓ Clean complete"
+
+# Show help
+help:
+	@echo "========================================"
+	@echo "$(MODULE_NAME) Module Build System"
+	@echo "========================================"
+	@echo ""
+	@echo "Available targets:"
+	@echo "  all           - Build and run testbench (default)"
+	@echo "  test          - Run the testbench simulation"
+	@echo "  compile       - Compile all files"
+	@echo "  run_test      - Run simulation"
+	@echo "  wave          - View waveform in GTKWave"
+	@echo "  syntax_check  - Check VHDL syntax only"
+	@echo "  clean         - Remove build artifacts"
+	@echo "  help          - Show this help message"
+	@echo ""
+	@echo "Usage examples:"
+	@echo "  make                    # Build and run testbench"
+	@echo "  make syntax_check       # Check syntax only"
+	@echo "  make compile            # Compile only"
+	@echo "  make run_test           # Run simulation"
+	@echo "  make wave              # View waveform"
+	@echo "  make clean             # Clean up build artifacts"
+	@echo ""
+	@echo "This is an example of using the Makefile.template"
+	@echo "Copy Makefile.template to your module and customize it!"
+
+# Phony targets
+.PHONY: all test compile run_test wave syntax_check clean help
