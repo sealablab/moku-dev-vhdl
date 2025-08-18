@@ -1,5 +1,6 @@
 -- Slot2/top_probe_driver.vhd
 -- Top-level CustomWrapper architecture that instantiates the probe_driver module
+-- Features a 16-bit TopLevel status register for clean status reporting
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
@@ -15,7 +16,9 @@ architecture Behavioural of CustomWrapper is
     signal probe_trig_out : signed(15 downto 0);
     signal probe_intensity_out : signed(15 downto 0);
     -- ProbeDriverStatusRegister (PDSR)
-    signal probe_driver_status_register : std_logic_vector(4 downto 0);    
+    signal probe_driver_status_register : std_logic_vector(4 downto 0);
+    -- TopLevel Status Register (16 bits)
+    signal toplevel_status_register : std_logic_vector(15 downto 0);    
 begin
     -- =============================================================================
     -- PROBE DRIVER INSTANTIATION
@@ -45,6 +48,17 @@ begin
             status_register   => probe_driver_status_register  -- Capture status register
         );
     
+    -- =============================================================================
+    -- TOPLEVEL STATUS REGISTER CONSTRUCTION
+    -- =============================================================================
+    -- Construct 16-bit TopLevel status register
+    -- [15] = Error bit (probe driver status register bit 4)
+    -- [14:4] = Reserved for future use (set to 0)
+    -- [3:0] = Probe driver status register bits [3:0] (state machine status)
+    toplevel_status_register <= probe_driver_status_register(4) & 
+                               "00000000000" & 
+                               probe_driver_status_register(3 downto 0);
+    
     -- TODO: Maybe we should think about some Top-Level CR0 bits to aid in debugging. Something Like a YOLO bit?
 	-- TODO: Impement 'YOLO' BIT
     -- =============================================================================
@@ -62,8 +76,8 @@ begin
     -- Include Control0(10 downto 0) and status register for meaningful 16-bit output
     OutputC <= signed(Control0(10 downto 0) & probe_driver_status_register);
     
-    -- OutputD: Status and control information for debugging/monitoring
-    -- [15:8] = probe driver status register (5 bits + 3 padding), [7:0] = control state
-    OutputD <= signed("000000000" & probe_driver_status_register & Control1(14 downto 13));
+    -- OutputD: TopLevel status register (16 bits)
+    -- [15] = Error bit, [14:4] = Reserved, [3:0] = State machine status
+    OutputD <= signed(toplevel_status_register);
 
 end architecture Behavioural;
