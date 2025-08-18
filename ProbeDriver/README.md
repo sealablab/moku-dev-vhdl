@@ -1,6 +1,9 @@
 # ProbeDriver
 
 This directory contains a clean, working copy of the ProbeDriver implementation extracted from the Slot2-ProbeDriver development.
+It was created on 2025-08-17 after initial testing. 
+
+TODO: Let's looad it in a moku and see how it goes
 
 ## What This Is
 
