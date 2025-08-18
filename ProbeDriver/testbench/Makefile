@@ -11,6 +11,7 @@ TB_TOP = top_probe_driver_tb.vhd
 TB_SIMPLE = simple_top_tb.vhd
 TB_MINIMAL = minimal_test.vhd
 TB_DEBUG = debug_test.vhd
+TB_TOP_STATUS = top_status_tb.vhd
 
 # DUT files for ProbeDriver testbench
 DUT_FILES_PROBE = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
@@ -19,7 +20,7 @@ DUT_FILES_PROBE = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
 DUT_FILES_TOP = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd ../CustomWrapper.vhd ../top_probe_driver.vhd
 
 # Default target
-all: test_probe test_top test_simple test_minimal test_debug
+all: test_probe test_top test_simple test_minimal test_debug test_top_status
 
 # =============================================================================
 # PROBE DRIVER TESTBENCH TARGETS
@@ -152,6 +153,32 @@ run_debug: compile_debug
 	$(GHDL) -r $(GHDL_FLAGS) debug_test --stop-time=1500ns --vcd=debug_test.vcd
 
 # =============================================================================
+# TOP STATUS TESTBENCH TARGETS
+# =============================================================================
+
+# Compile and run Top Status testbench
+test_top_status: compile_top_status run_top_status
+
+# Compile Top Status testbench files
+compile_top_status:
+	@echo "========================================"
+	@echo "Compiling Top Status testbench..."
+	@echo "========================================"
+	@echo "Compiling DUT files..."
+	$(GHDL) -a $(GHDL_FLAGS) $(DUT_FILES_TOP)
+	@echo "Compiling testbench..."
+	$(GHDL) -a $(GHDL_FLAGS) $(TB_TOP_STATUS)
+	@echo "Elaborating testbench..."
+	$(GHDL) -e $(GHDL_FLAGS) top_status_tb
+
+# Run Top Status testbench
+run_top_status: compile_top_status
+	@echo "========================================"
+	@echo "Running Top Status testbench..."
+	@echo "========================================"
+	$(GHDL) -r $(GHDL_FLAGS) top_status_tb --stop-time=3000ns --vcd=top_status_tb.vcd
+
+# =============================================================================
 # UTILITY TARGETS
 # =============================================================================
 
@@ -181,6 +208,11 @@ help:
 	@echo "  compile_simple - Compile Simple Top module testbench files"
 	@echo "  run_simple     - Run Simple Top module testbench"
 	@echo ""
+	@echo "Top Status Testbench:"
+	@echo "  test_top_status    - Compile and run Top Status testbench"
+	@echo "  compile_top_status - Compile Top Status testbench files"
+	@echo "  run_top_status     - Run Top Status testbench"
+	@echo ""
 	@echo "Utility:"
 	@echo "  all            - Run all testbenches"
 	@echo "  clean          - Remove generated files"
@@ -192,4 +224,4 @@ help:
 	@echo "  make test_simple   # Test Top module (simple version)"
 	@echo "  make all           # Run all testbenches"
 
-.PHONY: all test_probe compile_probe run_probe test_top compile_top run_top test_simple compile_simple run_simple clean help
+.PHONY: all test_probe compile_probe run_probe test_top compile_top run_top test_simple compile_simple run_simple test_top_status compile_top_status run_top_status clean help
