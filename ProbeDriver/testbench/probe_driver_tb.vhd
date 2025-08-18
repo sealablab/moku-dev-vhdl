@@ -18,6 +18,7 @@ architecture testbench of probe_driver_tb is
   signal enable : std_logic := '0';
   signal trig_in : std_logic := '0';
   signal auto_arm : std_logic := '0';  -- NEW: Auto-arm test signal
+  signal clk_en : std_logic := '1';    -- NEW: Clock enable (always on for unit test)
   
   -- Input test values (using NEW bit widths)
   signal Intensity_index : std_logic_vector(6 downto 0) := "0110010";  -- 50 (valid)
@@ -48,6 +49,7 @@ begin
   dut: entity work.probe_driver
     port map (
       clk            => clk,
+      clk_en         => clk_en,        -- NEW: Clock enable
       reset          => reset,
       enable         => enable,
       trig_in        => trig_in,
