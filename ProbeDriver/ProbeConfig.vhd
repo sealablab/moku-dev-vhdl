@@ -20,7 +20,7 @@ package ProbeConfig_pkg is
   -- Timing configuration constants
   constant PulseMinDuration : unsigned(15 downto 0) := to_unsigned(16, 16);      -- Minimum pulse duration (clock cycles) - INCLUSIVE
   constant PulseMaxDuration : unsigned(15 downto 0) := to_unsigned(1024, 16);     -- Maximum pulse duration (clock cycles) - INCLUSIVE
-  constant ProbeCoolDownMin : unsigned(31 downto 0) := to_unsigned(24, 32);      -- Probe cool down period (clock cycles) - INCLUSIVE
+  constant ProbeCoolDownMin : unsigned(15 downto 0) := to_unsigned(24, 16);      -- Probe cool down period (clock cycles) - INCLUSIVE
   
   -- =============================================================================
   -- CONFIGURATION VALIDATION CONSTANTS
