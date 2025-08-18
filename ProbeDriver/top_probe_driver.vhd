@@ -1,6 +1,11 @@
 -- Slot2/top_probe_driver.vhd
 -- Top-level CustomWrapper architecture that instantiates the probe_driver module
 -- Features a 16-bit TopLevel status register for clean status reporting
+-- 
+-- UPDATED: Modified to match new ProbeDriver.vhd bit widths:
+-- - Intensity_index: 7 bits (Control2[15:9]) for 0-100 range
+-- - PulseDuration_in: 16 bits (Control3[31:16]) padded to 32 bits
+-- - CoolDown_in: 16 bits (Control4[31:16]) padded to 32 bits
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
@@ -35,13 +40,13 @@ begin
     trig_in        => Control1(13),                    -- Trigger input signal
             
             -- Control2: [31:16] = reserved, [15:8] = intensity, [7:0] = reserved
-            Intensity_index   => Control2(15 downto 8),       -- 8-bit Index into IntensityLUT
+            Intensity_index   => Control2(15 downto 9),       -- 7-bit Index into IntensityLUT (0-100)
             
-            -- Control3: [31:0] = pulse duration (full 32-bit)
-            PulseDuration_in  => Control3(31 downto 0),       -- 32-bit pulse duration
+            -- Control3: [31:16] = pulse duration (16-bit), [15:0] = reserved
+            PulseDuration_in  => Control3(31 downto 16) & x"0000",  -- 16-bit pulse duration (padded to 32)
             
-            -- Control4: [31:0] = cooldown period (full 32-bit)
-            CoolDown_in       => Control4(31 downto 0),       -- 32-bit cooldown period
+            -- Control4: [31:16] = cooldown period (16-bit), [15:0] = reserved
+            CoolDown_in       => x"0000" & Control4(31 downto 16),  -- 16-bit cooldown period (padded to 32)
           
             trig_out          => probe_trig_out,               -- Capture trigger output
             intensity_out     => probe_intensity_out,          -- Capture intensity output
