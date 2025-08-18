@@ -64,8 +64,7 @@ architecture rtl of probe_driver is
   -- Status register
   signal status_reg : std_logic_vector(4 downto 0) := (others => '0');
   
-  -- ZeroInit mode signals for automatic demonstration on reset
-  signal zeroinit_mode : std_logic := '0';  -- One-shot flag to auto-run a single cycle on reset when inputs are all zero
+  -- Safe defaults logic: when inputs are 0x00, use safe minimum values
 
 -- =============================================================================
 -- BEGIN - Main logic starts here
@@ -86,46 +85,42 @@ begin
       cnt <= (others => '0');
       status_reg <= (others => '0');  -- Initialize status register to 0
       
-      -- ZeroInit mode detection: Check if all ControlRegisters are 0x00 (default state)
-      if (PulseDuration_in = x"0000") and (CoolDown_in = x"0000") and (Intensity_index = "0000000") then
-        zeroinit_mode <= '1';  -- Arm one-shot zeroinit cycle
+      -- Safe defaults: use minimum values when inputs are 0x00, otherwise use input values
+      if (Intensity_index = "0000000") then
+        Intensity <= (others => '0');  -- Safe minimum intensity
       else
-        zeroinit_mode <= '0';
+        Intensity <= unsigned(Intensity_index);
       end if;
       
-      -- Use actual input values (or safe defaults in zeroinit mode)
-      if zeroinit_mode = '1' then
-        -- In zeroinit mode, use safe default values directly
-        Intensity <= (others => '0');  -- Safe zero intensity (IntensityLut(0) = 0x0000)
-        PulseDuration <= PulseMinDuration;  -- Use safe constant in zeroinit mode
-        CoolDown <= ProbeCoolDownMin;  -- Use safe constant in zeroinit mode
-        -- Internal signals now contain appropriate values for all modes
+      if (PulseDuration_in = x"0000") then
+        PulseDuration <= PulseMinDuration;  -- Safe minimum duration
       else
-        -- Normal mode: use input values
-        Intensity <= unsigned(Intensity_index);
         PulseDuration <= unsigned(PulseDuration_in);
+      end if;
+      
+      if (CoolDown_in = x"0000") then
+        CoolDown <= ProbeCoolDownMin;  -- Safe minimum cooldown
+      else
         CoolDown <= unsigned(CoolDown_in);
       end if;
     else
       -- State machine logic ------------------------------------------------------
       case current_state is
         when IDLE =>
-          -- Wait for enable signal OR auto-advance in zeroinit mode
-          if enable = '1' or (zeroinit_mode = '1') then
+          -- Wait for enable signal
+          if enable = '1' then
             current_state <= ARMED;
             pulse_counter <= (others => '0');
             status_reg(0) <= '1';  -- Set bit 0 when entering ARMED
           end if;
           
         when ARMED =>
-          -- Wait for trigger input OR auto-advance in zeroinit mode
-          if trig_in = '1' or (zeroinit_mode = '1') then
+          -- Wait for trigger input
+          if trig_in = '1' then
             current_state <= FIRING;
-            -- Initialize pulse counter to duration value (already set correctly based on mode)
+            -- Initialize pulse counter to duration value
             pulse_counter <= PulseDuration;
             status_reg(1) <= '1';  -- Set bit 1 when entering FIRING
-            -- Clear zeroinit one-shot so it doesn't retrigger
-            zeroinit_mode <= '0';
           end if;
           
         when FIRING =>
