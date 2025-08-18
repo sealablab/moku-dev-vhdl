@@ -100,6 +100,40 @@ if rising_edge(clk_in) and clk_en = '1' then
 end if;
 ```
 
+### **How Clock Division Works with ProbeDriver**
+
+**Important**: The clock divider does NOT create a separate, slower clock signal. Instead, it works as follows:
+
+1. **Same Clock Quality, Different Frequency**
+   - The **input clock** (`clk_in`) maintains its original frequency and quality
+   - The **`clk_en` signal** creates "windows" when the ProbeDriver can execute
+   - Each `clk_en` pulse is **synchronized to the input clock** - it's not a separate clock domain
+
+2. **What Happens Inside ProbeDriver**
+   - ProbeDriver receives the **full-speed main clock** (`Clk`)
+   - But it only **executes its logic** when `probe_clk_en` is HIGH
+   - This creates the **effect** of running at a slower rate
+
+3. **Timing Example**
+   For divider `"0010"` (divide by 4):
+   - Main clock: 100 MHz (10 ns period)
+   - `clk_en` pulses: Every 40 ns (4 × 10 ns)
+   - ProbeDriver executes: Every 40 ns instead of every 10 ns
+   - **Result**: ProbeDriver behaves as if it's running at 25 MHz
+
+4. **Key Benefits of This Approach**
+   - **No clock domain crossing issues** - everything stays synchronized
+   - **Precise timing** - the slower execution is exactly synchronized to the main clock
+   - **No metastability** - no need for clock domain crossing logic
+   - **Clean integration** - the ProbeDriver doesn't need to know about the division
+
+5. **What You're NOT Doing**
+   - You're **NOT** creating a separate, slower clock signal
+   - You're **NOT** changing the ProbeDriver's internal clock
+   - You're **NOT** creating clock domain crossing issues
+
+**Summary**: You're feeding the ProbeDriver the **same clock pulses** but **less frequently**, which gives you the equivalent of a slower clock rate while maintaining perfect synchronization with the main system clock.
+
 ## Benefits
 
 1. **Flexible Timing**: Allows ProbeDriver to run at different speeds
