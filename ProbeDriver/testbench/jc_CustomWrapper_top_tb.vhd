@@ -1,10 +1,13 @@
--- jc-CustomWrapper-top-tb.vhd
+-- jc_CustomWrapper_top_tb.vhd
 -- Higher-level testbench for CustomWrapper entity (lovingly hand crafted by jc)
 -- Designed to illustrate the process of iterating over a testbench
+-- MIRRORS internal signal names from top_probe_driver.vhd for clarity
+-- Uses HumanInterface_pkg for human-friendly display functions
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.ProbeConfig_pkg.all;
+use work.HumanInterface_pkg.all;
 
 entity jc_CustomWrapper_top_tb is
 end entity jc_CustomWrapper_top_tb;
@@ -45,28 +48,31 @@ architecture testbench of jc_CustomWrapper_top_tb is
     );
   end component;
   
-  -- Signal declarations
+  -- =============================================================================
+  -- INTERNAL SIGNALS - MIRRORING top_probe_driver.vhd NAMES
+  -- =============================================================================
+  -- Clock and reset
   signal clk : std_logic := '0';
   signal reset : std_logic := '1';
+  
+  -- Input/Output ports (from CustomWrapper interface)
   signal inputA, inputB, inputC, inputD : signed(15 downto 0) := (others => '0');
   signal outputA, outputB, outputC, outputD : signed(15 downto 0);
+  
+  -- Control registers (matching top_probe_driver.vhd layout)
   signal control0, control1, control2, control3, control4 : std_logic_vector(31 downto 0) := (others => '0');
   signal control5, control6, control7, control8, control9 : std_logic_vector(31 downto 0) := (others => '0');
   signal control10, control11, control12, control13, control14, control15 : std_logic_vector(31 downto 0) := (others => '0');
   
-  -- Test state tracking
-  type test_phase_type is (INIT, RESET_PHASE, ZERO_INIT_MODE, BASIC_FUNCTIONALITY, AUTO_ARM_TEST, VERIFICATION, COMPLETE);
-  signal test_phase : test_phase_type := INIT;
-  signal phase_counter : integer := 0;
-  signal cycle_count : integer := 0;
-  
-  -- Test results and monitoring
-  signal test_passed : boolean := true;
-  signal output_monitor_active : std_logic := '0';
-  signal last_outputA, last_outputB, last_outputC : signed(15 downto 0);
-  
-  -- Expected values for sanity checking
-  signal expected_status_bits : std_logic_vector(3 downto 0) := (others => '0');
+  -- =============================================================================
+  -- DERIVED SIGNALS - MIRRORING INTERNAL LOGIC
+  -- =============================================================================
+  -- Mirror the internal signals from top_probe_driver.vhd
+  signal probe_driver_status_register : std_logic_vector(4 downto 0);  -- 5-bit status from ProbeDriver
+  signal toplevel_status_register : std_logic_vector(15 downto 0);     -- 16-bit top-level status
+  signal probe_trig_out : signed(15 downto 0);                        -- Probe trigger output
+  signal probe_intensity_out : signed(15 downto 0);                   -- Probe intensity output
+  signal probe_clk_en : std_logic;                                    -- Clock enable from divider
   
 begin
   -- =============================================================================
@@ -108,6 +114,15 @@ begin
     );
   
   -- =============================================================================
+  -- SIGNAL MAPPING - MIRROR INTERNAL LOGIC FROM top_probe_driver.vhd
+  -- =============================================================================
+  -- Map the CustomWrapper outputs to our internal signal names
+  toplevel_status_register <= std_logic_vector(outputA);
+  probe_driver_status_register <= toplevel_status_register(3 downto 0) & toplevel_status_register(15);
+  probe_trig_out <= outputB;
+  probe_intensity_out <= outputC;
+  
+  -- =============================================================================
   -- MAIN TEST SEQUENCE
   -- =============================================================================
   
@@ -126,17 +141,40 @@ begin
     
     -- Step 1: Start with reset active
     test_step := 1;
-    report "Step " & integer'image(test_step) & ": Reset active, all controls at 0x00";
+    report "Step " & integer'image(test_step) & "/3: Reset active, all controls at 0x00";
     reset <= '1';
     control0 <= (others => '0');  -- All zeros = safe defaults mode
     control1 <= (others => '0');
     wait for CLK_PERIOD * 3;
     
+    -- Display current status using HumanInterface functions
+    report "Current Status:";
+    report format_value("Control0", decode_control0(control0));
+    report format_value("Control1", decode_control1(control1));
+    report format_value("TopLevel", decode_toplevel_status(toplevel_status_register));
+    
     -- Step 2: Release reset, observe initial state
     test_step := 2;
-    report "Step " & integer'image(test_step) & ": Release reset, observe IDLE state";
+    report "Step " & integer'image(test_step) & "/3: Release reset, observe IDLE state";
     reset <= '0';
     wait for CLK_PERIOD * 5;
+    
+    -- Display status after reset release
+    report "Status after reset release:";
+    report format_value("TopLevel", decode_toplevel_status(toplevel_status_register));
+    report format_value("ProbeDriver", decode_probe_status(probe_driver_status_register));
+    
+    -- Step 3: Enable the module
+    test_step := 3;
+    report "Step " & integer'image(test_step) & "/3: Enable module (Control0(31) = '0')";
+    control0(31) <= '0';  -- Enable = '0' (inverted logic)
+    wait for CLK_PERIOD * 5;
+    
+    -- Display final status
+    report "Final Status:";
+    report format_value("Control0", decode_control0(control0));
+    report format_value("TopLevel", decode_toplevel_status(toplevel_status_register));
+    report format_value("ProbeDriver", decode_probe_status(probe_driver_status_register));
     
     -- End simulation
     report "Simulation complete";
