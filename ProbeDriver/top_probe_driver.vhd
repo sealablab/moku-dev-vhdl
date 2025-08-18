@@ -25,7 +25,60 @@ architecture Behavioural of CustomWrapper is
     signal probe_driver_status_register : std_logic_vector(15 downto 0);
     -- NEW: Clock divider signals
     signal probe_clk_en : std_logic;
+    
+    -- =============================================================================
+    -- STATUS LED SIGNALS
+    -- =============================================================================
+    -- LED Status Signals for visual feedback
+    signal LED_ARMED, LED_FIRING, LED_FIRED, LED_COOLDOWN, LED_ERROR : std_logic;
+    
 begin
+    -- =============================================================================
+    -- STATUS LED LATCH LOGIC
+    -- =============================================================================
+    -- LED Status Latch Logic - provides visual feedback for probe driver states
+    process(Clk)
+    begin
+        if rising_edge(Clk) then
+            if Reset = '1' then
+                -- Clear all LED signals on system reset
+                LED_ARMED <= '0';
+                LED_FIRING <= '0';
+                LED_FIRED <= '0';
+                LED_COOLDOWN <= '0';
+                LED_ERROR <= '0';
+            elsif Control1(15) = '1' then
+                -- Clear all LED signals on LED reset via Control1[15]
+                LED_ARMED <= '0';
+                LED_FIRING <= '0';
+                LED_FIRED <= '0';
+                LED_COOLDOWN <= '0';
+                LED_ERROR <= '0';
+            else
+                -- Latch logic: set LED high when status bit goes high
+                if probe_driver_status_register(0) = '1' then
+                    LED_ARMED <= '1';
+                end if;
+                
+                if probe_driver_status_register(1) = '1' then
+                    LED_FIRING <= '1';
+                end if;
+                
+                if probe_driver_status_register(2) = '1' then
+                    LED_FIRED <= '1';
+                end if;
+                
+                if probe_driver_status_register(3) = '1' then
+                    LED_COOLDOWN <= '1';
+                end if;
+                
+                if probe_driver_status_register(4) = '1' then
+                    LED_ERROR <= '1';
+                end if;
+            end if;
+        end if;
+    end process;
+    
     -- =============================================================================
     -- CLOCK DIVIDER INSTANTIATION
     -- =============================================================================
@@ -58,7 +111,8 @@ begin
             
             -- Control1: [31:0] = CR1 (32 bits)  
             -- [31:16] = 16-bit CoolDown-in
-            -- [15:0]  = Reserved for future use
+            -- [15]    = LED reset control (NEW: clears all status LED indicators)
+            -- [14:0]  = Reserved for future use
             
             -- Reset from external top-level Reset input; Enable is inverted Control0(31); Trigger from Control0(23)
             reset          => Reset,
@@ -101,6 +155,8 @@ begin
     -- ✅ COMPLETED: NEW: Auto-arm feature from Control0(30) - skip IDLE state after cooldown
     -- ✅ COMPLETED: NEW: Simplified state machine - removed FIRED state, status tracked via register
     -- ✅ COMPLETED: NEW: Clock divider integration from CR0[27:24] - flexible timing control
+    -- ✅ COMPLETED: NEW: Status LED latch logic for visual feedback of probe driver states
+    -- ✅ COMPLETED: NEW: LED reset control via Control1[15] for clearing LED status indicators
     -- =============================================================================
     
     -- =============================================================================
