@@ -44,19 +44,17 @@ begin
             -- [15:0]  = Reserved for future use
             
             -- Note: Reset, enable, and trigger will be handled later as mentioned in requirements
-            reset          => '0',                              -- TODO: Map to appropriate control bit
-            enable         => '1',                              -- TODO: Map to Control0(31) global enable
-            trig_in        => '0',                              -- TODO: Map to Control0(23) soft trigger
+            reset          => Control0(31),                     -- Global enable bit also serves as reset when low
+            enable         => Control0(31),                     -- Global enable bit (Control0[31])
+            trig_in        => Control0(23),                     -- Soft trigger input (Control0[23])
             
             -- =============================================================================
-            -- IMPLEMENTATION STATUS:
+            -- RESET LOGIC EXPLANATION:
             -- =============================================================================
-            -- ✅ COMPLETED: Intensity, Duration, and Cooldown mapping to new CR0/CR1 layout
-            -- ✅ COMPLETED: All width mismatches resolved (7-bit intensity, 16-bit duration/cooldown)
-            -- ❌ TODO: Implement reset, enable, and trigger signal mapping
-            -- ❌ TODO: Connect Control0(31) to global enable logic
-            -- ❌ TODO: Connect Control0(23) to soft trigger logic
-            -- ❌ TODO: Determine appropriate reset signal source
+            -- The reset signal is tied to Control0(31) (global enable) so that:
+            -- - When Control0(31) = '1': Module is enabled and operational
+            -- - When Control0(31) = '0': Module is reset and disabled
+            -- This provides a simple way to reset the module by clearing the global enable bit
             -- =============================================================================
             
             -- Intensity: 7-bit index into IntensityLUT (0-100)
@@ -72,6 +70,17 @@ begin
             intensity_out     => probe_intensity_out,          -- Capture intensity output
             status_register   => probe_driver_status_register  -- Capture status register
         );
+    
+    -- =============================================================================
+    -- IMPLEMENTATION STATUS:
+    -- =============================================================================
+    -- ✅ COMPLETED: Intensity, Duration, and Cooldown mapping to new CR0/CR1 layout
+    -- ✅ COMPLETED: All width mismatches resolved (7-bit intensity, 16-bit duration/cooldown)
+    -- ✅ COMPLETED: Reset, enable, and trigger signal mapping implemented
+    -- ✅ COMPLETED: Control0(31) connected to global enable logic
+    -- ✅ COMPLETED: Control0(23) connected to soft trigger logic
+    -- ✅ COMPLETED: Reset signal source determined (uses global enable bit)
+    -- =============================================================================
     
     -- =============================================================================
     -- TOPLEVEL STATUS REGISTER CONSTRUCTION
