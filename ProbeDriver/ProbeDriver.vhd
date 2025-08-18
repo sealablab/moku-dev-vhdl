@@ -59,17 +59,10 @@ architecture rtl of probe_driver is
   signal cooldown_counter : unsigned(31 downto 0) := (others => '0');
   
   -- Control signals
-  signal effective_duration : unsigned(15 downto 0);
   signal Intensity : unsigned(6 downto 0);
-  signal clamped_intensity : integer range 0 to 100 := 0;  -- Initialize to 0
   
   -- Status register
   signal status_reg : std_logic_vector(4 downto 0) := (others => '0');
-  
-  -- Error tracking signals
-  signal intensity_error : std_logic := '0';
-  signal duration_error : std_logic := '0';
-  signal cooldown_error : std_logic := '0';
   
   -- ZeroInit mode signals for automatic demonstration on reset
   signal zeroinit_mode : std_logic := '0';  -- Flag to indicate zeroinit mode
@@ -94,9 +87,6 @@ begin
       cooldown_counter <= (others => '0');
       cnt <= (others => '0');
       status_reg <= (others => '0');  -- Initialize status register to 0
-      intensity_error <= '0';         -- Initialize error signals to 0
-      duration_error <= '0';
-      cooldown_error <= '0';
       
       -- ZeroInit mode detection: Check if all ControlRegisters are 0x00 (default state)
       if (PulseDuration_in = x"0000") and (CoolDown_in = x"0000") and (Intensity_index = "0000000") then
@@ -109,57 +99,16 @@ begin
         zeroinit_trigger <= '0';
       end if;
       
-      -- Use actual input values
-      PulseDuration <= unsigned(PulseDuration_in);
-      CoolDown <= unsigned(CoolDown_in);
-      Intensity <= unsigned(Intensity_index);
-    
-      -- In zeroinit mode, use safe defaults and skip validation
+      -- Use actual input values (or safe defaults in zeroinit mode)
       if zeroinit_mode = '1' then
-        -- Use safe default values directly
-        clamped_intensity <= 0;  -- Safe zero intensity
-        effective_duration <= PulseMinDuration;  -- Safe minimum duration
-        -- CoolDown already set above
-        
-        -- No validation errors in zeroinit mode
-        intensity_error <= '0';
-        duration_error <= '0';
-        cooldown_error <= '0';
+        -- In zeroinit mode, use safe default values directly
+        Intensity <= (others => '0');  -- Safe zero intensity (IntensityLut(0) = 0x0000)
+        -- PulseDuration and CoolDown will use constants directly in state machine
       else
-        -- Normal mode: do bounds checking
-        -- Validate intensity to valid range (0-100) for lookup table - INCLUSIVE bounds
-        -- Note: IntensityLut[0] = off, IntensityLut[1] = MinIntensity, IntensityLut[100] = MaxIntensity
-        -- 7-bit intensity index (0-127) provides sufficient range for 0-100 values
-        if to_integer(unsigned(Intensity_index)) >= ProbeIntensityMin and to_integer(unsigned(Intensity_index)) <= ProbeIntensityMax then
-          clamped_intensity <= to_integer(unsigned(Intensity_index));
-          intensity_error <= '0';  -- No error
-        else
-          clamped_intensity <= ProbeIntensityMin;  -- Default to safe value
-          intensity_error <= '1';  -- Error: outside valid intensity range
-        end if;
-        
-        -- Validate duration to valid range (PulseMinDuration to PulseMaxDuration) - INCLUSIVE bounds
-        if unsigned(PulseDuration_in) >= PulseMinDuration and unsigned(PulseDuration_in) <= PulseMaxDuration then
-          effective_duration <= unsigned(PulseDuration_in);
-          duration_error <= '0';  -- No error
-        else
-          effective_duration <= PulseMinDuration;  -- Default to safe value
-          duration_error <= '1';  -- Error: outside valid duration range
-        end if;
-        
-        -- Validate cooldown to minimum requirement - INCLUSIVE lower bound, no upper limit
-        if unsigned(CoolDown_in) >= ProbeCoolDownMin then
-          cooldown_error <= '0';  -- No error
-        else
-          cooldown_error <= '1';  -- Error: below minimum cooldown
-        end if;
-      end if;
-      
-      -- Set error bit (bit 4) if any error is detected
-      if (intensity_error = '1') or (duration_error = '1') or (cooldown_error = '1') then
-        status_reg(4) <= '1';  -- Set bit 4 high when any error is detected
-      else
-        status_reg(4) <= '0';  -- Clear bit 4 when no errors
+        -- Normal mode: use input values
+        Intensity <= unsigned(Intensity_index);
+        PulseDuration <= unsigned(PulseDuration_in);
+        CoolDown <= unsigned(CoolDown_in);
       end if;
     else
       -- State machine logic ------------------------------------------------------
@@ -184,13 +133,25 @@ begin
           end if;
           
         when FIRING =>
-          -- Actively firing the probe with effective duration
-          if pulse_counter >= effective_duration then
-            current_state <= FIRED;
-            cooldown_counter <= (others => '0');
-            status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
+          -- Actively firing the probe with duration
+          if zeroinit_mode = '1' then
+            -- In zeroinit mode, use safe constant
+            if pulse_counter >= PulseMinDuration then
+              current_state <= FIRED;
+              cooldown_counter <= (others => '0');
+              status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
+            else
+              pulse_counter <= pulse_counter + 1;
+            end if;
           else
-            pulse_counter <= pulse_counter + 1;
+            -- In normal mode, use input duration
+            if pulse_counter >= PulseDuration then
+              current_state <= FIRED;
+              cooldown_counter <= (others => '0');
+              status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
+            else
+              pulse_counter <= pulse_counter + 1;
+            end if;
           end if;
           
         when FIRED =>
@@ -200,14 +161,22 @@ begin
           
         when COOL_DOWN =>
           -- Wait for cooldown period
-          if cooldown_counter >= CoolDown then
-            current_state <= IDLE;
-            -- Mark zeroinit sequence as completed
-            if zeroinit_mode = '1' then
+          if zeroinit_mode = '1' then
+            -- In zeroinit mode, use safe constant
+            if cooldown_counter >= ProbeCoolDownMin then
+              current_state <= IDLE;
+              -- Mark zeroinit sequence as completed
               zeroinit_completed <= '1';
+            else
+              cooldown_counter <= cooldown_counter + 1;
             end if;
           else
-            cooldown_counter <= cooldown_counter + 1;
+            -- In normal mode, use input cooldown
+            if cooldown_counter >= CoolDown then
+              current_state <= IDLE;
+            else
+              cooldown_counter <= cooldown_counter + 1;
+            end if;
           end if;
           
         when others =>
@@ -227,7 +196,7 @@ end process;
 -- =============================================================================
   trig_out <= ProbeTrigger_Threshold when current_state = FIRING else (others => '0');
   
-  intensity_out <= IntensityLut(clamped_intensity) when current_state = FIRING else (others => '0');  
+  intensity_out <= IntensityLut(to_integer(Intensity)) when current_state = FIRING else (others => '0');  
   -- Status register output
   status_register <= status_reg;
 
