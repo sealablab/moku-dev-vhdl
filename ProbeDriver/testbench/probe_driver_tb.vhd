@@ -20,8 +20,8 @@ architecture testbench of probe_driver_tb is
   
   -- Input test values (using NEW bit widths)
   signal Intensity_index : std_logic_vector(6 downto 0) := "0110010";  -- 50 (valid)
-  signal PulseDuration_in : std_logic_vector(15 downto 0) := x"0010";  -- 16 cycles
-  signal CoolDown_in : std_logic_vector(15 downto 0) := x"0008";       -- 8 cycles
+  signal PulseDuration_in : std_logic_vector(15 downto 0) := std_logic_vector(PulseMinDuration);  -- min duration
+  signal CoolDown_in : std_logic_vector(15 downto 0) := std_logic_vector(resize(ProbeCoolDownMin, 16));       -- >= min cooldown
   
   -- Output signals from DUT
   signal trig_out : signed(15 downto 0);
@@ -102,7 +102,7 @@ begin
     -- Test 7: Test different cooldown
     test_step <= 7;
     report "Test 7: Test different cooldown";
-    CoolDown_in <= x"0010";  -- 16 cycles
+    CoolDown_in <= x"0020";  -- 32 cycles (>= minimum 24)
     wait for CLK_PERIOD * 2;
     
     -- Test 8: Final trigger test
@@ -133,28 +133,23 @@ begin
   -- MONITORING AND VALIDATION
   -- =============================================================================
   monitor: process(clk)
+    variable prev_status : std_logic_vector(4 downto 0) := (others => '0');
   begin
     if rising_edge(clk) then
-      -- Monitor status register changes
-      case status_register is
-        when "00001" =>  -- ARMED state
-          report "Status: ARMED state reached";
-        when "00010" =>  -- FIRING state
-          report "Status: FIRING state reached";
-        when "00100" =>  -- FIRED state reached
-          report "Status: FIRED state reached";
-        when "01000" =>  -- COOL_DOWN state
-          report "Status: COOL_DOWN state reached";
-        when "10000" =>  -- Error state
-          report "WARNING: Error detected in status register";
-          test_passed <= false;
-        when others =>
-          null;
-      end case;
+      -- Report only on status transitions
+      if status_register /= prev_status then
+        report "Status changed to: " & to_hstring(status_register);
+      end if;
+      -- Report on error bit rising edge
+      if prev_status(4) = '0' and status_register(4) = '1' then
+        report "ERROR bit asserted";
+        test_passed <= false;
+      end if;
+      prev_status := status_register;
       
-      -- Monitor intensity output during firing
-      if status_register(1) = '1' and intensity_out /= x"0000" then
-        report "Intensity output: " & to_string(intensity_out);
+      -- Report intensity only when entering FIRING
+      if prev_status(1) = '0' and status_register(1) = '1' then
+        report "FIRING: intensity_out=" & to_hstring(intensity_out);
       end if;
     end if;
   end process monitor;

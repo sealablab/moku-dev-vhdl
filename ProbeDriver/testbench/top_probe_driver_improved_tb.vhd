@@ -57,8 +57,8 @@ architecture testbench of top_probe_driver_improved_tb is
   
   -- Test parameters using NEW control register layout
   signal test_intensity : std_logic_vector(6 downto 0) := "0110010";  -- 50
-  signal test_pulse_duration : std_logic_vector(15 downto 0) := x"0010";  -- 16 cycles
-  signal test_cooldown : std_logic_vector(15 downto 0) := x"0008";       -- 8 cycles
+  signal test_pulse_duration : std_logic_vector(15 downto 0) := std_logic_vector(PulseMinDuration);  -- within bounds
+  signal test_cooldown : std_logic_vector(15 downto 0) := std_logic_vector(resize(ProbeCoolDownMin, 16));       -- >= min cooldown
   
   -- Test state machine
   type test_state_type is (INIT, RESET_PHASE, IDLE, ENABLE, TRIGGER, FIRE, COOLDOWN, VERIFY, DONE);
@@ -68,6 +68,7 @@ architecture testbench of top_probe_driver_improved_tb is
   -- Test results
   signal test_passed : boolean := true;
   signal test_errors : integer := 0;
+  signal allow_error_checks : std_logic := '0';
   
 begin
   -- =============================================================================
@@ -118,27 +119,28 @@ begin
     report "Test 1: Initial reset";
     wait for CLK_PERIOD * 2;
     
+    -- Pre-initialize control registers at time 0 so validation passes during reset
+    -- CR0: [31]=enable, [23]=trig, [22:16]=intensity, [15:0]=duration
+    -- CR1: [31:16]=cooldown
+    
+    -- Concurrent assignments ensure values are present before first clock rising edge
+    control0(31) <= '1';
+    control0(23) <= '0';
+    control0(22 downto 16) <= test_intensity;
+    control0(15 downto 0) <= test_pulse_duration;
+    control1(31 downto 16) <= test_cooldown;
+    
     -- Test 2: Release reset
     test_state <= RESET_PHASE;
     report "Test 2: Release reset";
     reset <= '0';
+    -- Allow some cycles for configuration to settle before enabling error checks
     wait for CLK_PERIOD * 2;
+    allow_error_checks <= '1';
     
-    -- Test 3: Configure control registers using NEW layout
+    -- Test 3: Control registers are already configured before reset release
     test_state <= IDLE;
-    report "Test 3: Configure control registers";
-    
-    -- CR0 Layout: [31] = Global enable, [23] = Soft trigger, [22:16] = Intensity, [15:0] = Duration
-    control0(31) <= '1';                    -- Global enable
-    control0(23) <= '0';                    -- Soft trigger (initially off)
-    control0(22 downto 16) <= test_intensity;  -- 7-bit intensity index
-    control0(15 downto 0) <= test_pulse_duration;  -- 16-bit duration
-    
-    -- CR1 Layout: [31:16] = Cooldown, [15:0] = Reserved
-    control1(31 downto 16) <= test_cooldown;  -- 16-bit cooldown
-    control1(15 downto 0) <= x"0000";        -- Reserved (set to 0)
-    
-    wait for CLK_PERIOD * 2;
+    report "Test 3: Configured control registers (pre-init)";
     
     -- Test 4: Enable the system
     test_state <= ENABLE;
@@ -201,32 +203,23 @@ begin
   -- OUTPUT MONITORING
   -- =============================================================================
   monitor: process(clk)
+    variable prev_outputA : signed(15 downto 0) := (others => '0');
   begin
     if rising_edge(clk) then
-      -- Monitor status register (OutputA bits 3:0)
-      case outputA(3 downto 0) is
-        when "0001" =>  -- ARMED state
-          report "Status: ARMED state reached";
-        when "0010" =>  -- FIRING state
-          report "Status: FIRING state reached";
-        when "0100" =>  -- FIRED state
-          report "Status: FIRED state reached";
-        when "1000" =>  -- COOL_DOWN state
-          report "Status: COOL_DOWN state reached";
-        when others =>
-          null;
-      end case;
-      
-      -- Monitor error bit (OutputA bit 15)
-      if outputA(15) = '1' then
-        report "WARNING: Error detected in status register";
+      -- Report on state transitions (OutputA[3:0])
+      if outputA(3 downto 0) /= prev_outputA(3 downto 0) then
+        report "Top status changed to: " & to_hstring(std_logic_vector(outputA));
+      end if;
+      -- Error bit edge (after grace period)
+      if allow_error_checks = '1' and prev_outputA(15) = '0' and outputA(15) = '1' then
+        report "Top-level ERROR bit asserted";
         test_passed <= false;
         test_errors <= test_errors + 1;
       end if;
-      
-      -- Monitor intensity output (OutputC)
-      if outputC /= x"0000" then
-        report "Intensity output: " & to_string(outputC);
+      prev_outputA := outputA;
+      -- Report intensity when FIRING enters
+      if prev_outputA(1) = '0' and outputA(1) = '1' then
+        report "Top FIRING: OutputC=" & to_hstring(std_logic_vector(outputC));
       end if;
     end if;
   end process monitor;

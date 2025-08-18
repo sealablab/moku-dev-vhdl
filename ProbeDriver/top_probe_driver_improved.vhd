@@ -34,7 +34,7 @@ begin
 
             -- UPDATED CONTROL REGISTER LAYOUT (matching README_ImprovedControlRegisters.md):
             -- Control0: [31:0] = CR0 (32 bits)
-            -- [31]    = Global enable bit (mapped to both 'top' and 'probedriver' enable inputs)
+            -- [31]    = Global enable bit (mapped to 'probedriver' enable input)
             -- [23]    = Soft trigger in
             -- [22:16] = 7-bit intensity index (0-100)
             -- [15:0]  = 16-bit duration_in
@@ -43,10 +43,10 @@ begin
             -- [31:16] = 16-bit CoolDown-in
             -- [15:0]  = Reserved for future use
             
-            -- Note: Reset, enable, and trigger will be handled later as mentioned in requirements
-            reset          => Control0(31),                     -- Global enable bit also serves as reset when low
-            enable         => Control0(31),                     -- Global enable bit (Control0[31])
-            trig_in        => Control0(23),                     -- Soft trigger input (Control0[23])
+            -- Reset from external top-level Reset input; Enable from Control0(31); Trigger from Control0(23)
+            reset          => Reset,
+            enable         => Control0(31),
+            trig_in        => Control0(23),
             
             -- =============================================================================
             -- RESET LOGIC EXPLANATION:
