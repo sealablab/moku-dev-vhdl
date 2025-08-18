@@ -1,10 +1,12 @@
 -- Official top_probe_driver.vhd with improved Control Register layout
 -- Top-level CustomWrapper architecture that instantiates the probe_driver module
 -- Features a 16-bit TopLevel status register for clean status reporting
--- 
--- Control Register Layout (matching README_ImprovedControlRegisters.md):
--- Control0: [31] = Global enable, [23] = Soft trigger, [22:16] = 7-bit intensity, [15:0] = 16-bit duration
--- Control1: [31:16] = 16-bit cooldown, [15:0] = Reserved
+-- GIT tag 0.99.1 ?
+-- Control0:  [31] = Global enable, 
+-- Control0:  [23] = Soft trigger, [22:16] = 7-bit intensity, 
+-- Control0: [15:0] = 16-bit duration
+-- Control1: [31:16] = 16-bit cooldown,
+-- Control1: [15:0] = Reserved
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
@@ -43,18 +45,18 @@ begin
             -- [31:16] = 16-bit CoolDown-in
             -- [15:0]  = Reserved for future use
             
-            -- Reset from external top-level Reset input; Enable from Control0(31); Trigger from Control0(23)
+            -- Reset from external top-level Reset input; Enable is inverted Control0(31); Trigger from Control0(23)
             reset          => Reset,
-            enable         => Control0(31),
+            enable         => not Control0(31),  -- Enable when Control0(31) = '0' (auto-fire with safe defaults)
             trig_in        => Control0(23),
             
             -- =============================================================================
-            -- RESET LOGIC EXPLANATION:
+            -- ENABLE LOGIC EXPLANATION:
             -- =============================================================================
-            -- The reset signal is tied to Control0(31) (global enable) so that:
-            -- - When Control0(31) = '1': Module is enabled and operational
-            -- - When Control0(31) = '0': Module is reset and disabled
-            -- This provides a simple way to reset the module by clearing the global enable bit
+            -- The enable signal is inverted from Control0(31) so that:
+            -- - When Control0(31) = '0': Module is ENABLED and auto-fires with safe defaults
+            -- - When Control0(31) = '1': Module is DISABLED (safety off mode)
+            -- This creates intuitive behavior: 0x00 = "on with safe defaults", 0x01 = "off"
             -- =============================================================================
             
             -- Intensity: 7-bit index into IntensityLUT (0-100)
@@ -77,9 +79,9 @@ begin
     -- ✅ COMPLETED: Intensity, Duration, and Cooldown mapping to new CR0/CR1 layout
     -- ✅ COMPLETED: All width mismatches resolved (7-bit intensity, 16-bit duration/cooldown)
     -- ✅ COMPLETED: Reset, enable, and trigger signal mapping implemented
-    -- ✅ COMPLETED: Control0(31) connected to global enable logic
+    -- ✅ COMPLETED: Control0(31) inverted for intuitive enable logic (0x00 = on, 0x01 = off)
     -- ✅ COMPLETED: Control0(23) connected to soft trigger logic
-    -- ✅ COMPLETED: Reset signal source determined (uses global enable bit)
+    -- ✅ COMPLETED: Auto-fire feature enabled when Control0(31) = '0' (safe defaults mode)
     -- =============================================================================
     
     -- =============================================================================
