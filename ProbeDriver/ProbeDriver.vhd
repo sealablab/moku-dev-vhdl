@@ -27,9 +27,9 @@ entity probe_driver is
    
     -- Begin Probe Driver 'API'
     -- Note: These input registers are only read during Reset.
-    Intensity_index      : in  std_logic_vector(7 downto 0);
-    PulseDuration_in  : in  std_logic_vector(31 downto 0);
-    CoolDown_in       : in  std_logic_vector(31 downto 0);
+    Intensity_index      : in  std_logic_vector(6 downto 0);
+    PulseDuration_in  : in  std_logic_vector(15 downto 0);
+    CoolDown_in       : in  std_logic_vector(15 downto 0);
     -- Note: These output registers are only written during Reset.
     trig_out         : out signed(15 downto 0);
     intensity_out    : out signed(15 downto 0);
@@ -46,8 +46,8 @@ architecture rtl of probe_driver is
   type intensity_lut_type is array (0 to 100) of signed(15 downto 0);
   
   -- Signal declarations
-  signal PulseDuration : unsigned(15 downto 0);  -- 16 bits for up to 65,535 cycles (~2.1 ms)
-  signal CoolDown : unsigned(31 downto 0) := (others => '0');       -- 32 bits for up to 4,294,967,295 cycles (~137 seconds)
+  signal PulseDuration : unsigned(15 downto 0);  -- 16 bits for up to 65,535 cycles (~2.1 ms at 100MHz)
+  signal CoolDown : unsigned(15 downto 0) := (others => '0');       -- 16 bits for up to 65,535 cycles (~2.1 ms at 100MHz)
   signal cnt    : signed(15 downto 0) := (others => '0');
   
   -- State machine signals
@@ -60,7 +60,7 @@ architecture rtl of probe_driver is
   
   -- Control signals
   signal effective_duration : unsigned(15 downto 0);
-  signal Intensity : unsigned(7 downto 0);
+  signal Intensity : unsigned(6 downto 0);
   signal clamped_intensity : integer range 0 to 100 := 0;  -- Initialize to 0
   
   -- Status register
@@ -99,7 +99,7 @@ begin
       cooldown_error <= '0';
       
       -- ZeroInit mode detection: Check if all ControlRegisters are 0x00 (default state)
-      if (PulseDuration_in = x"00000000") and (CoolDown_in = x"00000000") and (Intensity_index = x"00") then
+      if (PulseDuration_in = x"0000") and (CoolDown_in = x"0000") and (Intensity_index = "0000000") then
         zeroinit_mode <= '1';  -- Enable zeroinit mode
         zeroinit_completed <= '0';  -- Reset completion flag
         zeroinit_trigger <= '1';  -- Trigger zeroinit sequence
@@ -110,7 +110,7 @@ begin
       end if;
       
       -- Use actual input values
-      PulseDuration <= unsigned(PulseDuration_in(15 downto 0));
+      PulseDuration <= unsigned(PulseDuration_in);
       CoolDown <= unsigned(CoolDown_in);
       Intensity <= unsigned(Intensity_index);
     
@@ -129,6 +129,7 @@ begin
         -- Normal mode: do bounds checking
         -- Validate intensity to valid range (0-100) for lookup table - INCLUSIVE bounds
         -- Note: IntensityLut[0] = off, IntensityLut[1] = MinIntensity, IntensityLut[100] = MaxIntensity
+        -- 7-bit intensity index (0-127) provides sufficient range for 0-100 values
         if to_integer(unsigned(Intensity_index)) >= ProbeIntensityMin and to_integer(unsigned(Intensity_index)) <= ProbeIntensityMax then
           clamped_intensity <= to_integer(unsigned(Intensity_index));
           intensity_error <= '0';  -- No error
@@ -138,8 +139,8 @@ begin
         end if;
         
         -- Validate duration to valid range (PulseMinDuration to PulseMaxDuration) - INCLUSIVE bounds
-        if unsigned(PulseDuration_in(15 downto 0)) >= PulseMinDuration and unsigned(PulseDuration_in(15 downto 0)) <= PulseMaxDuration then
-          effective_duration <= unsigned(PulseDuration_in(15 downto 0));
+        if unsigned(PulseDuration_in) >= PulseMinDuration and unsigned(PulseDuration_in) <= PulseMaxDuration then
+          effective_duration <= unsigned(PulseDuration_in);
           duration_error <= '0';  -- No error
         else
           effective_duration <= PulseMinDuration;  -- Default to safe value
