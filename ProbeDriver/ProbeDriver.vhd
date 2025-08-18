@@ -65,9 +65,7 @@ architecture rtl of probe_driver is
   signal status_reg : std_logic_vector(4 downto 0) := (others => '0');
   
   -- ZeroInit mode signals for automatic demonstration on reset
-  signal zeroinit_mode : std_logic := '0';  -- Flag to indicate zeroinit mode
-  signal zeroinit_completed : std_logic := '0';  -- Flag to prevent multiple zeroinit cycles
-  signal zeroinit_trigger : std_logic := '0';  -- Internal trigger for zeroinit sequence
+  signal zeroinit_mode : std_logic := '0';  -- One-shot flag to auto-run a single cycle on reset when inputs are all zero
 
 -- =============================================================================
 -- BEGIN - Main logic starts here
@@ -90,13 +88,9 @@ begin
       
       -- ZeroInit mode detection: Check if all ControlRegisters are 0x00 (default state)
       if (PulseDuration_in = x"0000") and (CoolDown_in = x"0000") and (Intensity_index = "0000000") then
-        zeroinit_mode <= '1';  -- Enable zeroinit mode
-        zeroinit_completed <= '0';  -- Reset completion flag
-        zeroinit_trigger <= '1';  -- Trigger zeroinit sequence
+        zeroinit_mode <= '1';  -- Arm one-shot zeroinit cycle
       else
-        zeroinit_mode <= '0';  -- Disable zeroinit mode
-        zeroinit_completed <= '0';
-        zeroinit_trigger <= '0';
+        zeroinit_mode <= '0';
       end if;
       
       -- Use actual input values (or safe defaults in zeroinit mode)
@@ -115,18 +109,15 @@ begin
       case current_state is
         when IDLE =>
           -- Wait for enable signal OR auto-advance in zeroinit mode
-          if enable = '1' or (zeroinit_mode = '1' and zeroinit_trigger = '1') then
+          if enable = '1' or (zeroinit_mode = '1') then
             current_state <= ARMED;
             pulse_counter <= (others => '0');
             status_reg(0) <= '1';  -- Set bit 0 when entering ARMED
-            if zeroinit_mode = '1' then
-              zeroinit_trigger <= '0';  -- Clear trigger after use
-            end if;
           end if;
           
         when ARMED =>
           -- Wait for trigger input OR auto-advance in zeroinit mode
-          if trig_in = '1' or (zeroinit_mode = '1' and zeroinit_completed = '0') then
+          if trig_in = '1' or (zeroinit_mode = '1') then
             current_state <= FIRING;
             -- Initialize pulse counter to duration value
             if zeroinit_mode = '1' then
@@ -135,6 +126,8 @@ begin
               pulse_counter <= PulseDuration;     -- Use input value in normal mode
             end if;
             status_reg(1) <= '1';  -- Set bit 1 when entering FIRING
+            -- Clear zeroinit one-shot so it doesn't retrigger
+            zeroinit_mode <= '0';
           end if;
           
         when FIRING =>
@@ -160,8 +153,6 @@ begin
             -- In zeroinit mode, use safe constant
             if cooldown_counter >= ProbeCoolDownMin then
               current_state <= IDLE;
-              -- Mark zeroinit sequence as completed
-              zeroinit_completed <= '1';
             else
               cooldown_counter <= cooldown_counter + 1;
             end if;
