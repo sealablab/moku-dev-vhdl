@@ -87,7 +87,7 @@ begin
       
       -- Safe defaults: use minimum values when inputs are 0x00, otherwise use input values
       if (Intensity_index = "0000000") then
-        Intensity <= (others => '0');  -- Safe minimum intensity
+        Intensity <= "0000001";  -- Safe minimum intensity (IntensityLut[1] = smallest observable output)
       else
         Intensity <= unsigned(Intensity_index);
       end if;
