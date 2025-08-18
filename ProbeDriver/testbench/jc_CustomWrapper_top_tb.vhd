@@ -148,11 +148,9 @@ begin
     wait for CLK_PERIOD * 3;
     
     -- Display current status using HumanInterface functions
-    report "Current Status:";
-    report format_value("Control0", decode_control0(control0));
-    report format_value("Control1", decode_control1(control1));
-    report format_value("TopLevel", decode_toplevel_status(toplevel_status_register));
-    
+    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
+
+
     -- Step 2: Release reset, observe initial state
     test_step := 2;
     report "Step " & integer'image(test_step) & "/3: Release reset, observe IDLE state";
@@ -161,8 +159,7 @@ begin
     
     -- Display status after reset release
     report "Status after reset release:";
-    report format_value("TopLevel", decode_toplevel_status(toplevel_status_register));
-    report format_value("ProbeDriver", decode_probe_status(probe_driver_status_register));
+    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
     
     -- Step 3: Enable the module
     test_step := 3;
@@ -172,9 +169,7 @@ begin
     
     -- Display final status
     report "Final Status:";
-    report format_value("Control0", decode_control0(control0));
-    report format_value("TopLevel", decode_toplevel_status(toplevel_status_register));
-    report format_value("ProbeDriver", decode_probe_status(probe_driver_status_register));
+    report display_system_status(control0, control1, toplevel_status_register, probe_driver_status_register);
     
     -- End simulation
     report "Simulation complete";

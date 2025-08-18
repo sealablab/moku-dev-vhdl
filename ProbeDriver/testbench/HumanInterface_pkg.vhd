@@ -61,6 +61,11 @@ package HumanInterface_pkg is
   -- Format a value with label and units
   function format_value(label_str : string; value : string; unit_str : string := "") return string;
   
+  -- Display complete system status in a formatted block
+  function display_system_status(ctrl0, ctrl1 : std_logic_vector(31 downto 0);
+                                toplevel_status : std_logic_vector(15 downto 0);
+                                probe_status : std_logic_vector(4 downto 0)) return string;
+  
   -- =============================================================================
   -- CLOCK DIVIDER DECODING
   -- =============================================================================
@@ -185,19 +190,19 @@ package body HumanInterface_pkg is
     if ctrl(30) = '1' then auto_arm_str := "AutoArm "; else auto_arm_str := "Manual  "; end if;
     if ctrl(23) = '1' then trigger_str := "TRIGGER "; else trigger_str := "NoTrig  "; end if;
 
-    return "Enable:" & enable_str & " | " & auto_arm_str & " | " & decode_clock_divider(ctrl(27 downto 24)) &
+    return "0x" & to_hstring(ctrl) & " | Enable:" & enable_str & " | " & auto_arm_str & " | " & decode_clock_divider(ctrl(27 downto 24)) &
            " | " & trigger_str & " | " & decode_intensity(ctrl(22 downto 16)) &
            " | " & decode_duration(ctrl(15 downto 0));
   end function;
   
   function decode_control1(ctrl : std_logic_vector(31 downto 0)) return string is
   begin
-    return decode_cooldown(ctrl(31 downto 16)) & " | Reserved:0x" & to_hstring(ctrl(15 downto 0));
+    return "0x" & to_hstring(ctrl) & " | " & decode_cooldown(ctrl(31 downto 16)) & " | Reserved:0x" & to_hstring(ctrl(15 downto 0));
   end function;
   
   function decode_control_hex(ctrl : std_logic_vector(31 downto 0); name : string) return string is
   begin
-    return name & ": 0x" & to_hstring(ctrl);
+    return "0x" & to_hstring(ctrl) & " | " & name & ":" & to_hstring(ctrl);
   end function;
   
   -- =============================================================================
@@ -219,18 +224,18 @@ package body HumanInterface_pkg is
   function decode_probe_status(status : std_logic_vector(4 downto 0)) return string is
   begin
     if status(4) = '1' then
-      return "State:" & probe_state_to_string(status(3 downto 0)) & " | ERROR";
+      return "0x" & to_hstring(status) & " | State:" & probe_state_to_string(status(3 downto 0)) & " | ERROR";
     else
-      return "State:" & probe_state_to_string(status(3 downto 0)) & " | OK";
+      return "0x" & to_hstring(status) & " | State:" & probe_state_to_string(status(3 downto 0)) & " | OK";
     end if;
   end function;
   
   function decode_toplevel_status(status : std_logic_vector(15 downto 0)) return string is
   begin
     if status(15) = '1' then
-      return "TopLevel: ERROR | " & probe_state_to_string(status(3 downto 0)) & " | Raw:0x" & to_hstring(status);
+      return "0x" & to_hstring(status) & " | TopLevel: ERROR | " & probe_state_to_string(status(3 downto 0));
     else
-      return "TopLevel: OK | " & probe_state_to_string(status(3 downto 0)) & " | Raw:0x" & to_hstring(status);
+      return "0x" & to_hstring(status) & " | TopLevel: OK | " & probe_state_to_string(status(3 downto 0));
     end if;
   end function;
   
@@ -266,6 +271,19 @@ package body HumanInterface_pkg is
     else
       return "   " & label_str & ": " & value & " " & unit_str;
     end if;
+  end function;
+  
+  function display_system_status(ctrl0, ctrl1 : std_logic_vector(31 downto 0);
+                                toplevel_status : std_logic_vector(15 downto 0);
+                                probe_status : std_logic_vector(4 downto 0)) return string is
+  begin
+    return  LF & "-----------------Status-------------------" & LF &
+        "Control0: " & decode_control0(ctrl0) & LF &
+           "Control1: " & decode_control1(ctrl1) & LF &
+           "TopLevel: " & decode_toplevel_status(toplevel_status) & LF &
+           "ProbeDrv: " & decode_probe_status(probe_status) & LF &
+                 "------------------------------------------" & LF;
+
   end function;
   
 end package body HumanInterface_pkg;
