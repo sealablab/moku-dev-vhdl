@@ -55,8 +55,8 @@ architecture rtl of probe_driver is
   signal current_state : state_type := IDLE;
   
   -- Timing counters
-  signal pulse_counter : unsigned(31 downto 0) := (others => '0');
-  signal cooldown_counter : unsigned(31 downto 0) := (others => '0');
+  signal pulse_counter : unsigned(15 downto 0) := (others => '0');
+  signal cooldown_counter : unsigned(15 downto 0) := (others => '0');
   
   -- Control signals
   signal Intensity : unsigned(6 downto 0);
@@ -128,30 +128,25 @@ begin
           -- Wait for trigger input OR auto-advance in zeroinit mode
           if trig_in = '1' or (zeroinit_mode = '1' and zeroinit_completed = '0') then
             current_state <= FIRING;
-            pulse_counter <= (others => '0'); -- Start counting up from 0
+            -- Initialize pulse counter to duration value
+            if zeroinit_mode = '1' then
+              pulse_counter <= PulseMinDuration;  -- Use safe constant in zeroinit mode
+            else
+              pulse_counter <= PulseDuration;     -- Use input value in normal mode
+            end if;
             status_reg(1) <= '1';  -- Set bit 1 when entering FIRING
           end if;
           
         when FIRING =>
           -- Actively firing the probe with duration
-          if zeroinit_mode = '1' then
-            -- In zeroinit mode, use safe constant
-            if pulse_counter >= PulseMinDuration then
-              current_state <= FIRED;
-              cooldown_counter <= (others => '0');
-              status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
-            else
-              pulse_counter <= pulse_counter + 1;
-            end if;
+          if pulse_counter = 0 then
+            -- Duration complete, move to FIRED state
+            current_state <= FIRED;
+            cooldown_counter <= (others => '0');
+            status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
           else
-            -- In normal mode, use input duration
-            if pulse_counter >= PulseDuration then
-              current_state <= FIRED;
-              cooldown_counter <= (others => '0');
-              status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
-            else
-              pulse_counter <= pulse_counter + 1;
-            end if;
+            -- Decrement counter
+            pulse_counter <= pulse_counter - 1;
           end if;
           
         when FIRED =>
