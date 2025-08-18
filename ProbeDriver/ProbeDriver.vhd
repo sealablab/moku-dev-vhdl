@@ -24,6 +24,7 @@ entity probe_driver is
     reset      : in  std_logic;
     enable     : in  std_logic;
     trig_in    : in  std_logic;
+    auto_arm   : in  std_logic;  -- NEW: Auto-arm feature input
    
     -- Begin Probe Driver 'API'
     -- Note: These input registers are only read during Reset.
@@ -50,8 +51,8 @@ architecture rtl of probe_driver is
   signal CoolDown : unsigned(15 downto 0) := (others => '0');       -- 16 bits for up to 65,535 cycles (~2.1 ms at 100MHz)
   signal cnt    : signed(15 downto 0) := (others => '0');
   
-  -- State machine signals
-  type state_type is (IDLE, ARMED, FIRING, FIRED, COOL_DOWN);
+  -- State machine signals - REMOVED FIRED state
+  type state_type is (IDLE, ARMED, FIRING, COOL_DOWN);
   signal current_state : state_type := IDLE;
   
   -- Timing counters
@@ -61,7 +62,7 @@ architecture rtl of probe_driver is
   -- Control signals
   signal Intensity : unsigned(6 downto 0);
   
-  -- Status register
+  -- Status register - Modified to track fired status without FIRED state
   signal status_reg : std_logic_vector(4 downto 0) := (others => '0');
   
   -- Safe defaults logic: when inputs are 0x00, use safe minimum values
@@ -135,24 +136,29 @@ begin
         when FIRING =>
           -- Actively firing the probe with duration
           if pulse_counter = 0 then
-            -- Duration complete, move to FIRED state
-            current_state <= FIRED;
+            -- Duration complete, move directly to COOL_DOWN (REMOVED FIRED state)
+            current_state <= COOL_DOWN;
             cooldown_counter <= (others => '0');
-            status_reg(2) <= '1';  -- Set bit 2 when entering FIRED
+            status_reg(2) <= '1';  -- Set bit 2 to indicate pulse completed (was FIRED state)
+            status_reg(3) <= '1';  -- Set bit 3 when entering COOL_DOWN
           else
             -- Decrement counter
             pulse_counter <= pulse_counter - 1;
           end if;
           
-        when FIRED =>
-          -- Pulse completed, start cooldown
-          current_state <= COOL_DOWN;
-          status_reg(3) <= '1';  -- Set bit 3 when entering COOL_DOWN
-          
         when COOL_DOWN =>
           -- Wait for cooldown period (CoolDown already set correctly based on mode)
           if cooldown_counter >= CoolDown then
-            current_state <= IDLE;
+            -- NEW: Auto-arm logic - if auto_arm is enabled, go directly to ARMED
+            if auto_arm = '1' then
+              current_state <= ARMED;
+              status_reg(0) <= '1';  -- Set bit 0 when entering ARMED
+              status_reg(3) <= '0';  -- Clear bit 3 when leaving COOL_DOWN
+            else
+              -- Normal behavior: go to IDLE
+              current_state <= IDLE;
+              status_reg(3) <= '0';  -- Clear bit 3 when leaving COOL_DOWN
+            end if;
           else
             cooldown_counter <= cooldown_counter + 1;
           end if;

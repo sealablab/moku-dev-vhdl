@@ -37,6 +37,7 @@ begin
             -- UPDATED CONTROL REGISTER LAYOUT (matching README_ImprovedControlRegisters.md):
             -- Control0: [31:0] = CR0 (32 bits)
             -- [31]    = Global enable bit (mapped to 'probedriver' enable input)
+            -- [30]    = Auto-arm feature (NEW: skip IDLE state, go directly to ARMED after cooldown)
             -- [23]    = Soft trigger in
             -- [22:16] = 7-bit intensity index (0-100)
             -- [15:0]  = 16-bit duration_in
@@ -49,6 +50,7 @@ begin
             reset          => Reset,
             enable         => not Control0(31),  -- Enable when Control0(31) = '0' (auto-fire with safe defaults)
             trig_in        => Control0(23),
+            auto_arm       => Control0(30),      -- NEW: Auto-arm feature from CR0[30]
             
             -- =============================================================================
             -- ENABLE LOGIC EXPLANATION:
@@ -82,6 +84,8 @@ begin
     -- ✅ COMPLETED: Control0(31) inverted for intuitive enable logic (0x00 = on, 0x01 = off)
     -- ✅ COMPLETED: Control0(23) connected to soft trigger logic
     -- ✅ COMPLETED: Auto-fire feature enabled when Control0(31) = '0' (safe defaults mode)
+    -- ✅ COMPLETED: NEW: Auto-arm feature from Control0(30) - skip IDLE state after cooldown
+    -- ✅ COMPLETED: NEW: Simplified state machine - removed FIRED state, status tracked via register
     -- =============================================================================
     
     -- =============================================================================

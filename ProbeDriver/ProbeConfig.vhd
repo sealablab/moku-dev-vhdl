@@ -31,8 +31,7 @@ package ProbeConfig_pkg is
   -- IntensityLut[0] = 0x00 (off)
   -- IntensityLut[1] = smallest observable output (MinIntensity)
   -- IntensityLut[100] = largest safe output (MaxIntensity)
-  constant ProbeIntensityMin : integer := 0;    -- Minimum valid intensity index (always 0)
-  constant ProbeIntensityMax : integer := 100;  -- Maximum valid intensity index (always 100)
+  -- Use direct array indexing: IntensityLut[0] and IntensityLut[1] for bounds
   
   -- =============================================================================
   -- TIMING CALCULATIONS (for reference)
