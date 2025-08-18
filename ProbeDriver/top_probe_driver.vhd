@@ -24,8 +24,22 @@ architecture Behavioural of CustomWrapper is
     -- ProbeDriverStatusRegister (PDSR)
     signal probe_driver_status_register : std_logic_vector(4 downto 0);
     -- TopLevel Status Register (16 bits)
-    signal toplevel_status_register : std_logic_vector(15 downto 0);    
+    signal toplevel_status_register : std_logic_vector(15 downto 0);
+    -- NEW: Clock divider signals
+    signal probe_clk_en : std_logic;
 begin
+    -- =============================================================================
+    -- CLOCK DIVIDER INSTANTIATION
+    -- =============================================================================
+    -- Instantiate the clk_divider module
+    u_clk_divider: entity work.clk_divider
+        port map (
+            clk_in      => Clk,
+            reset       => Reset,
+            divider_sel => Control0(27 downto 24),  -- NEW: CR0[27:24] controls divider
+            clk_en      => probe_clk_en             -- NEW: Clock enable for ProbeDriver
+        );
+    
     -- =============================================================================
     -- PROBE DRIVER INSTANTIATION
     -- =============================================================================
@@ -33,11 +47,13 @@ begin
     u_probe_driver: entity work.probe_driver
         port map (
             clk            => Clk,
+            clk_en         => probe_clk_en,      -- NEW: Clock enable from divider
 
             -- UPDATED CONTROL REGISTER LAYOUT (matching README_ImprovedControlRegisters.md):
             -- Control0: [31:0] = CR0 (32 bits)
             -- [31]    = Global enable bit (mapped to 'probedriver' enable input)
             -- [30]    = Auto-arm feature (NEW: skip IDLE state, go directly to ARMED after cooldown)
+            -- [27:24] = Clock divider selection (NEW: 0=no division, 1=÷2, 2=÷4, ..., 15=÷32768)
             -- [23]    = Soft trigger in
             -- [22:16] = 7-bit intensity index (0-100)
             -- [15:0]  = 16-bit duration_in
@@ -86,6 +102,7 @@ begin
     -- ✅ COMPLETED: Auto-fire feature enabled when Control0(31) = '0' (safe defaults mode)
     -- ✅ COMPLETED: NEW: Auto-arm feature from Control0(30) - skip IDLE state after cooldown
     -- ✅ COMPLETED: NEW: Simplified state machine - removed FIRED state, status tracked via register
+    -- ✅ COMPLETED: NEW: Clock divider integration from CR0[27:24] - flexible timing control
     -- =============================================================================
     
     -- =============================================================================

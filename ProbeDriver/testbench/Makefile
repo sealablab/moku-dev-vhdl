@@ -9,6 +9,7 @@ GHDL_FLAGS = --std=08 --ieee=synopsys
 TB_UNIT = probe_driver_tb.vhd
 TB_INTEGRATION = top_probe_driver_tb.vhd
 TB_CUSTOMWRAPPER_TOP = CustomWrapper-top-tb.vhd
+TB_CLOCK_DIVIDER_INTEGRATION = clock_divider_integration_tb.vhd
 
 # DUT files for unit test (ProbeDriver only)
 DUT_FILES_UNIT = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
@@ -98,11 +99,37 @@ run_customwrapper_top: compile_customwrapper_top
 	$(GHDL) -r $(GHDL_FLAGS) CustomWrapper_top_tb --stop-time=15000ns --vcd=customwrapper_top.vcd
 
 # =============================================================================
+# CLOCK DIVIDER INTEGRATION TEST TARGETS
+# =============================================================================
+
+# Compile and run clock divider integration test
+test_clock_divider_integration: compile_clock_divider_integration run_clock_divider_integration
+
+# Compile clock divider integration test files
+compile_clock_divider_integration:
+	@echo "========================================"
+	@echo "Compiling Clock Divider Integration Test..."
+	@echo "========================================"
+	@echo "Compiling DUT files..."
+	$(GHDL) -a $(GHDL_FLAGS) ../IntensityLut.vhd ../ProbeConfig.vhd ../../clk-divider/clk_divider.vhd ../ProbeDriver.vhd
+	@echo "Compiling testbench..."
+	$(GHDL) -a $(GHDL_FLAGS) $(TB_CLOCK_DIVIDER_INTEGRATION)
+	@echo "Elaborating testbench..."
+	$(GHDL) -e $(GHDL_FLAGS) clock_divider_integration_tb
+
+# Run clock divider integration test
+run_clock_divider_integration: compile_clock_divider_integration
+	@echo "========================================"
+	@echo "Running Clock Divider Integration Test..."
+	@echo "========================================"
+	$(GHDL) -r $(GHDL_FLAGS) clock_divider_integration_tb --stop-time=10000ns --vcd=clock_divider_integration.vcd
+
+# =============================================================================
 # COMBINED TARGETS
 # =============================================================================
 
 # Run all tests
-test_all: test_unit test_integration test_customwrapper_top
+test_all: test_unit test_integration test_customwrapper_top test_clock_divider_integration
 	@echo "========================================"
 	@echo "All tests completed!"
 	@echo "========================================"
@@ -120,13 +147,14 @@ clean:
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  all                    - Run all tests (default)"
-	@echo "  test_unit              - Run unit tests only"
-	@echo "  test_integration       - Run integration tests only"
-	@echo "  test_customwrapper_top - Run CustomWrapper top testbench only"
-	@echo "  test_all               - Run all tests"
-	@echo "  clean                  - Remove generated files"
-	@echo "  help                   - Show this help message"
+	@echo "  all                           - Run all tests (default)"
+	@echo "  test_unit                     - Run unit tests only"
+	@echo "  test_integration              - Run integration tests only"
+	@echo "  test_customwrapper_top        - Run CustomWrapper top testbench only"
+	@echo "  test_clock_divider_integration - Run clock divider integration test only"
+	@echo "  test_all                      - Run all tests"
+	@echo "  clean                         - Remove generated files"
+	@echo "  help                          - Show this help message"
 	@echo ""
 	@echo "Usage examples:"
 	@echo "  make                        # Run all tests"
@@ -136,4 +164,4 @@ help:
 	@echo "  make clean                 # Clean up"
 
 # Phony targets
-.PHONY: all test_unit test_integration test_customwrapper_top test_all clean help compile_unit run_unit compile_integration run_integration compile_customwrapper_top run_customwrapper_top
+.PHONY: all test_unit test_integration test_customwrapper_top test_clock_divider_integration test_all clean help compile_unit run_unit compile_integration run_integration compile_customwrapper_top run_customwrapper_top compile_clock_divider_integration run_clock_divider_integration

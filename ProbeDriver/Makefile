@@ -6,7 +6,7 @@ GHDL = ghdl
 GHDL_FLAGS = --std=08 --ieee=synopsys
 
 # Source files in dependency order
-SOURCES = IntensityLut.vhd ProbeConfig.vhd ProbeDriver.vhd CustomWrapper.vhd top_probe_driver.vhd
+SOURCES = IntensityLut.vhd ProbeConfig.vhd ../clk-divider/clk_divider.vhd ProbeDriver.vhd CustomWrapper.vhd top_probe_driver.vhd
 
 # Target for syntax checking
 syntax_check: $(SOURCES)

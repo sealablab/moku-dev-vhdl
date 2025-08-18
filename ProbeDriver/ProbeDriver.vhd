@@ -21,6 +21,7 @@ use work.ProbeConfig_pkg.all;
 entity probe_driver is
   port (
     clk        : in  std_logic;
+    clk_en     : in  std_logic;  -- NEW: Clock enable from divider
     reset      : in  std_logic;
     enable     : in  std_logic;
     trig_in    : in  std_logic;
@@ -80,7 +81,7 @@ begin
 -- =============================================================================
 process(clk) 
 begin
-  if rising_edge(clk) then
+  if rising_edge(clk) and clk_en = '1' then  -- NEW: Gate with clk_en
     if reset = '1' then
       -- Reset logic
       current_state <= IDLE;
