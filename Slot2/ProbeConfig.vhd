@@ -18,17 +18,21 @@ package ProbeConfig_pkg is
   constant ProbeTrigger_Threshold : signed(15 downto 0) := x"4000";  -- 2.5V threshold constant
   
   -- Timing configuration constants
-  constant ProbeMinDuration : unsigned(15 downto 0) := to_unsigned(16, 16);      -- Minimum pulse duration (clock cycles)
-  constant ProbeMaxDuration : unsigned(15 downto 0) := to_unsigned(1024, 16);     -- Maximum pulse duration (clock cycles)  
-  constant ProbeCoolDownMin : unsigned(31 downto 0) := to_unsigned(24, 32);      -- Probe cool down period (clock cycles)
+  constant PulseMinDuration : unsigned(15 downto 0) := to_unsigned(16, 16);      -- Minimum pulse duration (clock cycles) - INCLUSIVE
+  constant PulseMaxDuration : unsigned(15 downto 0) := to_unsigned(1024, 16);     -- Maximum pulse duration (clock cycles) - INCLUSIVE
+  constant ProbeCoolDownMin : unsigned(31 downto 0) := to_unsigned(24, 32);      -- Probe cool down period (clock cycles) - INCLUSIVE
   
   -- =============================================================================
   -- CONFIGURATION VALIDATION CONSTANTS
   -- =============================================================================
   
   -- Intensity range validation
-  constant ProbeIntensityMin : integer := 0;    -- Minimum valid intensity index
-  constant ProbeIntensityMax : integer := 100;  -- Maximum valid intensity index
+  -- Note: Intensity bounds are now defined by the IntensityLut endpoints:
+  -- IntensityLut[0] = 0x00 (off)
+  -- IntensityLut[1] = smallest observable output (MinIntensity)
+  -- IntensityLut[100] = largest safe output (MaxIntensity)
+  constant ProbeIntensityMin : integer := 0;    -- Minimum valid intensity index (always 0)
+  constant ProbeIntensityMax : integer := 100;  -- Maximum valid intensity index (always 100)
   
   -- =============================================================================
   -- TIMING CALCULATIONS (for reference)

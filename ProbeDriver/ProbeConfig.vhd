@@ -27,8 +27,12 @@ package ProbeConfig_pkg is
   -- =============================================================================
   
   -- Intensity range validation
-  constant ProbeIntensityMin : integer := 0;    -- Minimum valid intensity index
-  constant ProbeIntensityMax : integer := 100;  -- Maximum valid intensity index
+  -- Note: Intensity bounds are now defined by the IntensityLut endpoints:
+  -- IntensityLut[0] = 0x00 (off)
+  -- IntensityLut[1] = smallest observable output (MinIntensity)
+  -- IntensityLut[100] = largest safe output (MaxIntensity)
+  constant ProbeIntensityMin : integer := 0;    -- Minimum valid intensity index (always 0)
+  constant ProbeIntensityMax : integer := 100;  -- Maximum valid intensity index (always 100)
   
   -- =============================================================================
   -- TIMING CALCULATIONS (for reference)
