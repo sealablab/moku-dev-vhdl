@@ -7,6 +7,7 @@ use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use IEEE.Std_Logic_TextIO.all;
 use STD.TextIO.all;
+use work.ProbeConfig_pkg.all;
 
 entity top_status_tb is
 end entity top_status_tb;

@@ -7,6 +7,7 @@ use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use IEEE.Std_Logic_TextIO.all;
 use STD.TextIO.all;
+use work.ProbeConfig_pkg.all;
 
 entity top_probe_driver_tb is
 end entity top_probe_driver_tb;
@@ -186,15 +187,14 @@ begin
         end if;
         
         -- Check OutputB (should show ProbeTrigger_Threshold when firing)
-        -- ProbeTrigger_Threshold = x"4000" (2.5V)
-        if outputB /= x"4000" then
-            write(line_var, string'("ERROR: OutputB mismatch. Expected: x4000 (ProbeTrigger_Threshold), Got: ") & 
-                  to_string(outputB));
+        if outputB /= ProbeTrigger_Threshold then
+            write(line_var, string'("ERROR: OutputB mismatch. Expected: ") & 
+                  to_string(ProbeTrigger_Threshold) & string'(", Got: ") & to_string(outputB));
             writeline(output, line_var);
             test_passed <= false;
             test_errors <= test_errors + 1;
         else
-            write(line_var, string'("PASS: OutputB correct (shows ProbeTrigger_Threshold x4000 when firing)"));
+            write(line_var, string'("PASS: OutputB correct (shows ProbeTrigger_Threshold when firing)"));
             writeline(output, line_var);
         end if;
         

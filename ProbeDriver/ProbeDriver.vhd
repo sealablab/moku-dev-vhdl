@@ -91,33 +91,33 @@ begin
       CoolDown <= unsigned(CoolDown_in);
       Intensity <= unsigned(Intensity_index);
       
-      -- Clamp intensity to valid range (0-100) for lookup table
-      if to_integer(unsigned(Intensity_index)) <= ProbeIntensityMax then
-        clamped_intensity <= to_integer(unsigned(Intensity_index  ));
+      -- Validate intensity to valid range (0-100) for lookup table - INCLUSIVE bounds
+      if to_integer(unsigned(Intensity_index)) >= ProbeIntensityMin and to_integer(unsigned(Intensity_index)) <= ProbeIntensityMax then
+        clamped_intensity <= to_integer(unsigned(Intensity_index));
         intensity_error <= '0';  -- No error
       else
-        clamped_intensity <= ProbeIntensityMax;
-        intensity_error <= '1';  -- Error: exceeded maximum intensity
-        -- TODO: We should track / count the number of times we've exceeded the maximum intensity
+        clamped_intensity <= 0;  -- Default to safe value
+        intensity_error <= '1';  -- Error: outside valid intensity range
+        -- TODO: We should track / count the number of times we've exceeded the intensity range
       end if;
       
-      -- Calculate effective duration (max of PulseDuration and ProbeMinDuration)
-      if unsigned(PulseDuration_in(15 downto 0)) > ProbeMinDuration then
+      -- Validate duration to valid range (PulseMinDuration to PulseMaxDuration) - INCLUSIVE bounds
+      if unsigned(PulseDuration_in(15 downto 0)) >= PulseMinDuration and unsigned(PulseDuration_in(15 downto 0)) <= PulseMaxDuration then
         effective_duration <= unsigned(PulseDuration_in(15 downto 0));
         duration_error <= '0';  -- No error
       else
-        effective_duration <= ProbeMinDuration;
-        duration_error <= '1';  -- Error: exceeded minimum duration
-        -- TODO: We should track / count the number of times we've exceeded the minimum duration
+        effective_duration <= PulseMinDuration;  -- Default to safe value
+        duration_error <= '1';  -- Error: outside valid duration range
+        -- TODO: We should track / count the number of times we've exceeded the duration range
       end if;
       
-      -- Calculate effective cooldown (max of CoolDown_in and ProbeCoolDownMin)
-      if CoolDown_in > std_logic_vector(ProbeCoolDownMin) then
+      -- Validate cooldown to minimum requirement - INCLUSIVE lower bound, no upper limit
+      if unsigned(CoolDown_in) >= ProbeCoolDownMin then
         CoolDown <= unsigned(CoolDown_in);
         cooldown_error <= '0';  -- No error
       else
-        CoolDown <= ProbeCoolDownMin;
-        cooldown_error <= '1';  -- Error: exceeded minimum cooldown
+        CoolDown <= ProbeCoolDownMin;  -- Default to safe value
+        cooldown_error <= '1';  -- Error: below minimum cooldown
         -- TODO: We should track / count the number of times we've exceeded the minimum cooldown
       end if;
       

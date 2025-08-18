@@ -12,6 +12,7 @@ TB_SIMPLE = simple_top_tb.vhd
 TB_MINIMAL = minimal_test.vhd
 TB_DEBUG = debug_test.vhd
 TB_TOP_STATUS = top_status_tb.vhd
+TB_VALIDATION = ProbeDriverValidation_simple.vhd
 
 # DUT files for ProbeDriver testbench
 DUT_FILES_PROBE = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
@@ -20,7 +21,7 @@ DUT_FILES_PROBE = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
 DUT_FILES_TOP = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd ../CustomWrapper.vhd ../top_probe_driver.vhd
 
 # Default target
-all: test_probe test_top test_simple test_minimal test_debug test_top_status
+all: test_probe test_top test_simple test_minimal test_debug test_top_status test_validation
 
 # =============================================================================
 # PROBE DRIVER TESTBENCH TARGETS
@@ -179,6 +180,32 @@ run_top_status: compile_top_status
 	$(GHDL) -r $(GHDL_FLAGS) top_status_tb --stop-time=3000ns --vcd=top_status_tb.vcd
 
 # =============================================================================
+# VALIDATION TESTBENCH TARGETS
+# =============================================================================
+
+# Compile and run Validation testbench
+test_validation: compile_validation run_validation
+
+# Compile Validation testbench files
+compile_validation:
+	@echo "========================================"
+	@echo "Compiling Validation testbench..."
+	@echo "========================================"
+	@echo "Compiling DUT files..."
+	$(GHDL) -a $(GHDL_FLAGS) $(DUT_FILES_PROBE)
+	@echo "Compiling testbench..."
+	$(GHDL) -a $(GHDL_FLAGS) $(TB_VALIDATION)
+	@echo "Elaborating testbench..."
+	$(GHDL) -e $(GHDL_FLAGS) ProbeDriverValidation_simple
+
+# Run Validation testbench
+run_validation: compile_validation
+	@echo "========================================"
+	@echo "Running Validation testbench..."
+	@echo "========================================"
+	$(GHDL) -r $(GHDL_FLAGS) ProbeDriverValidation_simple --vcd=ProbeDriverValidation_simple.vcd
+
+# =============================================================================
 # UTILITY TARGETS
 # =============================================================================
 
@@ -213,15 +240,22 @@ help:
 	@echo "  compile_top_status - Compile Top Status testbench files"
 	@echo "  run_top_status     - Run Top Status testbench"
 	@echo ""
+	@echo "Validation Testbench:"
+	@echo "  test_validation    - Compile and run Validation testbench"
+	@echo "  compile_validation - Compile Validation testbench files"
+	@echo "  run_validation     - Run Validation testbench"
+	@echo ""
 	@echo "Utility:"
 	@echo "  all            - Run all testbenches"
 	@echo "  clean          - Remove generated files"
 	@echo "  help           - Show this help message"
 	@echo ""
 	@echo "Usage examples:"
-	@echo "  make test_probe    # Test ProbeDriver module"
-	@echo "  make test_top      # Test Top module integration"
-	@echo "  make test_simple   # Test Top module (simple version)"
-	@echo "  make all           # Run all testbenches"
+	@echo "  make test_probe       # Test ProbeDriver module"
+	@echo "  make test_top         # Test Top module integration"
+	@echo "  make test_simple      # Test Top module (simple version)"
+	@echo "  make test_top_status  # Test TopLevel status register"
+	@echo "  make test_validation  # Test parameter validation and edge conditions"
+	@echo "  make all              # Run all testbenches"
 
-.PHONY: all test_probe compile_probe run_probe test_top compile_top run_top test_simple compile_simple run_simple test_top_status compile_top_status run_top_status clean help
+.PHONY: all test_probe compile_probe run_probe test_top compile_top run_top test_simple compile_simple run_simple test_top_status compile_top_status run_top_status test_validation compile_validation run_validation clean help
