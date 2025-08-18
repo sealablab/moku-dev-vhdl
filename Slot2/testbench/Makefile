@@ -1,5 +1,8 @@
 # Slot2/testbench/Makefile
 # Makefile for running both ProbeDriver and Top module testbenches
+# 
+# UPDATED: Now uses MokuModules package to eliminate CustomWrapper duplication
+# The MokuModules_pkg.vhd is included first to provide standardized component declarations
 
 # GHDL compiler and flags
 GHDL = ghdl
@@ -15,8 +18,8 @@ TB_DEBUG = debug_test.vhd
 # DUT files for ProbeDriver testbench
 DUT_FILES_PROBE = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd
 
-# DUT files for Top module testbench (includes CustomWrapper and top_probe_driver)
-DUT_FILES_TOP = ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd ../CustomWrapper.vhd ../top_probe_driver.vhd
+# DUT files for Top module testbench (includes MokuModules package and other dependencies)
+DUT_FILES_TOP = ../../MokuModules/MokuModules_pkg.vhd ../IntensityLut.vhd ../ProbeConfig.vhd ../ProbeDriver.vhd ../CustomWrapper.vhd ../top_probe_driver.vhd
 
 # Default target
 all: test_probe test_top test_simple test_minimal test_debug

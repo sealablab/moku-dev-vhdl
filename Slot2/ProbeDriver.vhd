@@ -101,12 +101,12 @@ begin
         -- TODO: We should track / count the number of times we've exceeded the maximum intensity
       end if;
       
-      -- Calculate effective duration (max of PulseDuration and ProbeMinDuration)
-      if unsigned(PulseDuration_in(15 downto 0)) > ProbeMinDuration then
+      -- Calculate effective duration (max of PulseDuration and PulseMinDuration)
+      if unsigned(PulseDuration_in(15 downto 0)) > PulseMinDuration then
         effective_duration <= unsigned(PulseDuration_in(15 downto 0));
         duration_error <= '0';  -- No error
       else
-        effective_duration <= ProbeMinDuration;
+        effective_duration <= PulseMinDuration;
         duration_error <= '1';  -- Error: exceeded minimum duration
         -- TODO: We should track / count the number of times we've exceeded the minimum duration
       end if;
