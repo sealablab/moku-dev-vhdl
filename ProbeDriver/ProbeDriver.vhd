@@ -65,6 +65,9 @@ architecture rtl of probe_driver is
   signal status_reg : std_logic_vector(4 downto 0) := (others => '0');
   
   -- Safe defaults logic: when inputs are 0x00, use safe minimum values
+  
+  -- Auto-fire on reset: fires once using safe defaults after first enable
+  signal reset_fired : std_logic := '0';
 
 -- =============================================================================
 -- BEGIN - Main logic starts here
@@ -84,6 +87,7 @@ begin
       cooldown_counter <= (others => '0');
       cnt <= (others => '0');
       status_reg <= (others => '0');  -- Initialize status register to 0
+      reset_fired <= '0';  -- Reset the auto-fire flag
       
       -- Safe defaults: use minimum values when inputs are 0x00, otherwise use input values
       if (Intensity_index = "0000000") then
@@ -112,11 +116,16 @@ begin
             current_state <= ARMED;
             pulse_counter <= (others => '0');
             status_reg(0) <= '1';  -- Set bit 0 when entering ARMED
+            
+            -- Auto-fire once on first enable after reset
+            if reset_fired = '0' then
+              reset_fired <= '1';  -- Mark as fired
+            end if;
           end if;
           
         when ARMED =>
-          -- Wait for trigger input
-          if trig_in = '1' then
+          -- Wait for trigger input OR auto-advance on first fire after reset
+          if trig_in = '1' or (reset_fired = '0') then
             current_state <= FIRING;
             -- Initialize pulse counter to duration value
             pulse_counter <= PulseDuration;
