@@ -1,6 +1,14 @@
 -- Slot2/IntensityLut.vhd: 
 -- Intensity Lookup Table Package for Probe Driver
 -- This package contains the voltage-to-intensity mapping table
+-- 
+-- IMPORTANT: This LUT now serves as both the intensity mapping AND the safety bounds:
+-- IntensityLut[0] = 0x00 (off - safe zero intensity)
+-- IntensityLut[1] = smallest observable output (MinIntensity - safe minimum)
+-- IntensityLut[100] = largest safe output (MaxIntensity - safe maximum)
+-- 
+-- Users can modify these endpoints to adjust the safe operating range without
+-- touching separate configuration files.
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
@@ -14,8 +22,12 @@ package IntensityLut_pkg is
   -- ADC configured so 0x7FFF (MAX) = 4.999999V
   -- 3.3V = 0x7FFF * (3.3/4.999999) ≈ 0x7FFF * 0.66 ≈ 0x52AA
   constant IntensityLut : intensity_lut_type := (
-    -- 0% to 9% (0V to 0.297V)
-    x"0000", x"0008", x"0010", x"0018", x"0020", x"0028", x"0030", x"0038", x"0040", x"0048",
+    -- 0% = 0V (off - safe zero intensity)
+    x"0000",
+    -- 1% = smallest observable output (MinIntensity - safe minimum)
+    x"0008",
+    -- 2% to 9% (0.066V to 0.297V)
+    x"0010", x"0018", x"0020", x"0028", x"0030", x"0038", x"0040", x"0048",
     -- 10% to 19% (0.33V to 0.627V)
     x"0050", x"0058", x"0060", x"0068", x"0070", x"0078", x"0080", x"0088", x"0090", x"0098",
     -- 20% to 29% (0.66V to 0.957V)
@@ -34,7 +46,7 @@ package IntensityLut_pkg is
     x"0280", x"0288", x"0290", x"0298", x"02A0", x"02A8", x"02B0", x"02B8", x"02C0", x"02C8",
     -- 90% to 99% (2.97V to 3.267V)
     x"02D0", x"02D8", x"02E0", x"02E8", x"02F0", x"02F8", x"0300", x"0308", x"0310", x"0318",
-    -- 100% (3.3V)
+    -- 100% = largest safe output (MaxIntensity - safe maximum)
     x"0320"
   );
   
