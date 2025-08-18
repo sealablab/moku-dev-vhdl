@@ -63,21 +63,21 @@ begin
 	-- TODO: Impement 'YOLO' BIT
     -- =============================================================================
     -- OUTPUT ASSIGNMENTS
+    OutputA <= signed(toplevel_status_register);
+    -- OutputB: Show ProbeTrigger_Threshold when firing bit (bit 1) is set in status register
+    OutputB <= ProbeTrigger_Threshold when toplevel_status_register(1) = '1' else (others => '0');
+    OutputC <= probe_intensity_out;
+
+
     -- =============================================================================
     -- OutputA: Show probe trigger threshold when probe is firing, otherwise show intensity
     -- Note: probe_intensity_out is only valid during FIRING state, otherwise shows 0
-    OutputA <= probe_intensity_out;
     
     -- OutputB: Show probe intensity when firing, otherwise zero
-    OutputB <= probe_intensity_out when probe_trig_out = ProbeTrigger_Threshold else (others => '0');
     
-    -- OutputC: Echo back Control0(10 downto 0) and status register
-    -- Note: OutputC is 16 bits, so we select the most relevant portion
-    -- Include Control0(10 downto 0) and status register for meaningful 16-bit output
-    OutputC <= signed(Control0(10 downto 0) & probe_driver_status_register);
     
-    -- OutputD: TopLevel status register (16 bits)
+    -- OutputC: TopLevel status register (16 bits)
     -- [15] = Error bit, [14:4] = Reserved, [3:0] = State machine status
-    OutputD <= signed(toplevel_status_register);
+  -- XX moved on purpose
 
 end architecture Behavioural;
