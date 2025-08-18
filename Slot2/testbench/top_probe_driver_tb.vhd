@@ -157,16 +157,16 @@ begin
         write(line_var, string'("=== Test 3: Output Verification Test ==="));
         writeline(output, line_var);
         
-        -- Check OutputA (should show intensity when not firing)
-        if outputA /= signed("00000000" & test_intensity) then
-            write(line_var, string'("ERROR: OutputA mismatch. Expected: ") & 
-                  to_string(signed("00000000" & test_intensity)) & 
-                  string'(", Got: ") & to_string(outputA));
+        -- Check OutputA (should show voltage value from IntensityLut when not firing)
+        -- Note: IntensityLut(85) = x"02A8" = 680 decimal
+        if outputA /= x"02A8" then
+            write(line_var, string'("ERROR: OutputA mismatch. Expected: x02A8 (680), Got: ") & 
+                  to_string(outputA));
             writeline(output, line_var);
             test_passed <= false;
             test_errors <= test_errors + 1;
         else
-            write(line_var, string'("PASS: OutputA correct"));
+            write(line_var, string'("PASS: OutputA correct (shows voltage value from IntensityLut)"));
             writeline(output, line_var);
         end if;
         
