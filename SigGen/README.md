@@ -1,96 +1,157 @@
-# BestSlotBlinker
+# SigGen Module
 
-An enhanced version of the SlotBlinker with improved pattern generation and optimized design.
+## Overview
+The SigGen module is a **modular signal generator** that provides configurable waveform generation capabilities. It was refactored from the monolithic `BestSlotBlinker` design to follow a clean, maintainable 3-tier architecture.
 
-## Key Improvements
+## Architecture
 
-### 1. **Improved Random Pattern (LFSR)**
-- Replaced simple XOR-based "random" with proper 16-bit Linear Feedback Shift Register
-- **Taps**: Bits 15, 14, 13, 4 (maximal length sequence)
-- **Period**: 65,535 states for true pseudo-random generation
-- **Quality**: Much better randomness distribution
+### 3-Tier Modular Design
+```
+SigGen/
+├── common/                    # Shared packages and utilities
+│   ├── pattern_generator_pkg.vhd  # Pattern generation functions
+│   └── siggen_pkg.vhd            # Main package with types and utilities
+├── core/                     # Core signal generation logic
+│   └── siggen_core.vhd          # Main signal generation engine
+├── wrapper/                  # Interface layer
+│   └── siggen_wrapper.vhd       # Control parsing and core instantiation
+└── SigGen_Top.vhd           # Top-level CustomWrapper interface
+```
 
-### 2. **Streamlined Pattern Set**
-- Reduced from 16+ patterns to 8 optimized patterns
-- Kept the most useful and distinctive waveforms
-- Maintained pattern selection in `control0(3 downto 0)` as requested
+### Design Philosophy
+- **Separation of Concerns**: Each module has a single, well-defined responsibility
+- **Reusability**: Pattern functions can be used independently
+- **Maintainability**: Easy to modify patterns or add new functionality
+- **Testability**: Individual components can be tested in isolation
+- **Scalability**: Simple to extend with new patterns or features
 
-### 3. **8 Implemented Patterns**
-| Code | Pattern | Description |
-|------|---------|-------------|
-| 0000 | **Square Wave** | **50% duty cycle (0x0000 or 0x7FFF) - DEFAULT** |
-| 0001 | Sawtooth | Linear ramp (0x0000 to 0xFFFF) |
-| 0010 | Triangle | Folded sawtooth (0x0000 to 0x7FFF) |
-| 0011 | Sine | 16-step approximation (-0x8000 to 0x7FFF) |
-| 0100 | **LFSR Random** | **Improved pseudo-random sequence** |
-| 0101 | Staircase | 4 discrete levels |
-| 0110 | Pulse Train | Narrow pulses with long low periods |
-| 0111 | Alternating | Two alternating levels |
+## Module Responsibilities
+
+### 1. `pattern_generator_pkg.vhd` (Common)
+- **Purpose**: Pattern generation utilities and functions
+- **Contains**: 
+  - 8 predefined waveform patterns (square, sawtooth, triangle, sine, etc.)
+  - Pattern validation and utility functions
+  - Constants for amplitude levels
+- **Benefits**: Centralized pattern logic, easy to add new patterns
+
+### 2. `siggen_pkg.vhd` (Common)
+- **Purpose**: Main package with shared types, constants, and utilities
+- **Contains**:
+  - Configuration record types
+  - Control register parsing functions
+  - Validation and safe default functions
+  - Utility functions for signal processing
+- **Benefits**: Type safety, consistent configuration handling
+
+### 3. `siggen_core.vhd` (Core)
+- **Purpose**: Core signal generation logic and pipeline processing
+- **Contains**:
+  - Main counter and timing logic
+  - 3-stage pipeline for pattern generation
+  - Amplitude scaling and sign control
+  - Frequency division and phase offset
+- **Benefits**: Optimized performance, clean pipeline design
+
+### 4. `siggen_wrapper.vhd` (Wrapper)
+- **Purpose**: Interface layer and control register parsing
+- **Contains**:
+  - Control register parsing logic
+  - Configuration validation
+  - Core module instantiation
+- **Benefits**: Clean interface, easy to modify control logic
+
+### 5. `SigGen_Top.vhd` (Top-Level)
+- **Purpose**: CustomWrapper interface for MCC synthesis
+- **Contains**:
+  - Platform-compatible interface
+  - Wrapper instantiation
+  - Output signal routing
+- **Benefits**: Platform compatibility, easy integration
+
+## Pattern Types
+
+The module supports 8 configurable waveform patterns:
+
+| Pattern | Code | Description |
+|---------|------|-------------|
+| Square Wave | 0000 | 50% duty cycle square wave |
+| Sawtooth | 0001 | Linear ramp from 0 to 32767 |
+| Triangle | 0010 | Symmetric triangle wave |
+| Sine Approx | 0011 | 16-step sine approximation |
+| LFSR Random | 0100 | Pseudo-random pattern |
+| Staircase | 0101 | 4-level staircase |
+| Pulse Train | 0110 | Narrow pulse train |
+| Alternating | 0111 | Alternating level pattern |
 
 ## Control Register Layout
 
-### **Global Control (CR0)**
-- **control0(31)**: nEnable (active-low enable)
-- **control0(30)**: Sign control (0=unsigned, 1=signed)
-- **control0(29)**: Reserved for future use
-- **control0(28 downto 24)**: Global clock divider (1-32)
-- **control0(23 downto 16)**: Reserved for future use
-- **control0(15 downto 0)**: **16-bit bit-mask field** for advanced experimentation
+### Control0: Global Control
+- **Bit 31**: Global Enable (active-low)
+- **Bit 30**: Sign Control (0=unsigned, 1=signed)
+- **Bits 28-24**: Global Clock Divider (1-32)
+- **Bits 15-0**: Bit Mask for pattern modification
 
-### **Individual Output Control (CR1-CR4)**
-Each output has its own control register with **local pattern selection**:
-- **controlX(31 downto 24)**: Frequency divider (1-256)
-- **controlX(23 downto 16)**: Amplitude scale (0-255)
-- **controlX(15 downto 8)**: Extended pattern type (0=use local pattern)
-- **controlX(7 downto 4)**: Phase offset (0-15)
-- **controlX(3 downto 0)**: **Local pattern selection (0-7)** ⭐
-
-**Key Improvement**: Each output's pattern is now configured in its own register for easier human configuration!
-
-### 🎭 **Advanced Bit-Mask Feature**
-The 16-bit bit-mask field in CR0[15:0] allows advanced users to selectively mask out specific bits from all pattern outputs. This enables pattern experimentation, custom waveform creation, and bit-level debugging while maintaining full backward compatibility.
-
-**Safety Feature**: When CR0[15:0] = 0x0000, the bit mask defaults to 0xFFFF to prevent accidental pattern masking during initialization.
-
-## UART TX Pattern Analysis
-
-The `PATTERN_SUMMARY.md` file contains a detailed analysis of implementing UART TX output:
-
-- **Code Complexity**: ~25-35 lines of VHDL
-- **Implementation**: State machine + timing + message buffer
-- **Benefits**: Easy debugging, status messages, timing verification
-- **Options**: Replace unused pattern or extend to 16 patterns
+### Control1-4: Output Configuration (per output)
+- **Bits 31-24**: Frequency Divider (1-256)
+- **Bits 23-16**: Amplitude Scale (0-255)
+- **Bits 15-8**: Extended Pattern Type (if > 0)
+- **Bits 7-4**: Phase Offset (0-15)
+- **Bits 3-0**: Local Pattern Type (if extended = 0)
 
 ## Usage
 
-### **Quick Configuration (Recommended)**
-1. Set each output's pattern in the lower 4 bits of its control register:
-   - `control1(3 downto 0)` = Output A pattern (0-7)
-   - `control2(3 downto 0)` = Output B pattern (0-7)
-   - `control3(3 downto 0)` = Output C pattern (0-7)
-   - `control4(3 downto 0)` = Output D pattern (0-7)
-
-2. Configure frequency and amplitude per output:
-   - `controlX(31 downto 24)` = Frequency divider
-   - `controlX(23 downto 16)` = Amplitude scale
-
-3. Use global divider in `control0(28 downto 24)` for timing control
-4. Enable/disable with `control0(31)` (nEnable)
-
-### **Example Configuration**
-```vhdl
--- Output A: Square wave (default), full amplitude, no frequency division
-control1 <= x"01000000";  -- pattern=0 (square), amp=255, freq_div=1
-
--- Output B: Triangle wave, half amplitude, 4x slower
-control2 <= x"04000002";  -- pattern=2 (triangle), amp=128, freq_div=4
-
--- Output C: LFSR random, full amplitude, 16x slower  
-control3 <= x"10000004";  -- pattern=4 (random), amp=255, freq_div=16
+### Basic Compilation
+```bash
+cd SigGen
+make analyze      # Analyze all VHDL files
+make elaborate    # Elaborate the design
+make clean        # Clean generated files
 ```
 
-## Files
+### Adding New Patterns
+1. Add pattern function to `pattern_generator_pkg.vhd`
+2. Update pattern constants and validation
+3. Add to main `generate_pattern` function
+4. Update documentation
 
-- `BestSlotBlinker.vhd` - Main VHDL implementation
-- `PATTERN_SUMMARY.md` - Detailed pattern documentation and UART analysis
-- `README.md` - This overview file
+### Modifying Control Logic
+1. Edit parsing functions in `siggen_pkg.vhd`
+2. Update wrapper logic in `siggen_wrapper.vhd`
+3. Ensure type compatibility across modules
+
+## Benefits of Refactoring
+
+### Before (Monolithic BestSlotBlinker)
+- **345 lines** in single file
+- **Mixed responsibilities** (patterns, timing, control, output)
+- **Hard to maintain** and extend
+- **Difficult to test** individual components
+- **Code duplication** across outputs
+
+### After (Modular SigGen)
+- **Separated concerns** into logical modules
+- **Reusable components** (pattern functions, utilities)
+- **Easy to maintain** and extend
+- **Testable components** in isolation
+- **Clean interfaces** between modules
+- **Consistent architecture** with ProbeDriver
+
+## Dependencies
+
+- **VHDL-2008** standard
+- **IEEE libraries** (Std_Logic_1164, Numeric_Std)
+- **GHDL** for simulation and synthesis
+- **Make** for build automation
+
+## Future Enhancements
+
+- **Additional patterns**: More complex waveforms, user-defined patterns
+- **Advanced timing**: Variable duty cycles, burst modes
+- **Memory patterns**: Load patterns from external memory
+- **Synchronization**: Multiple output synchronization features
+- **Real-time control**: Dynamic pattern switching
+
+## Migration Notes
+
+This module maintains **100% compatibility** with the original BestSlotBlinker functionality while providing a much cleaner, more maintainable architecture. All existing control register configurations will work identically.
