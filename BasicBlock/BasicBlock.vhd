@@ -1,103 +1,14 @@
--- =============================================================================
--- BasicBlock_Top.vhd
--- =============================================================================
--- 
--- Top-Level Module for BasicBlock LED Pattern Generator
--- 
--- PURPOSE: This is the main entry point for the BasicBlock module. It implements
---          the CustomWrapper interface that Moku-Go expects, making it compatible
---          with the MCC (Moku Cloud Compiler) platform. Think of this as the
---          "main function" of our LED pattern generator.
--- 
--- TARGET PLATFORM: Moku-Go (Liquid Instruments)
---                  - FPGA-based signal generation and analysis platform
---                  - 4 analog outputs (OutputA, OutputB, OutputC, OutputD)
---                  - 16-bit signed resolution (-32768 to +32767)
---                  - Configurable via control registers
--- 
--- PLATFORM INTEGRATION: This module implements the CustomWrapper interface
---                       that Moku-Go expects, making it compatible with:
---                       - MCC (Moku Cloud Compiler)
---                       - Moku:Go desktop software
---                       - Python API control
---                       - External control systems
--- 
--- LEARNING OBJECTIVES:
---   1. Understanding VHDL top-level module design
---   2. Learning about platform interface requirements
---   3. Understanding how to integrate with existing systems
---   4. Learning about signal routing and module interconnection
---   5. Understanding how to create deployable FPGA designs
--- 
--- =============================================================================
+-- BasicBlock.vhd
+-- MCC-compatible BasicBlock architecture for CustomWrapper entity
+-- This file provides the complete BasicBlock implementation as an architecture
+-- Note: MCC provides the CustomWrapper entity declaration, we provide the Behavioural architecture
+--
+-- Date: 2025-01-27
+-- Tag: BasicBlock-v1.0-Refactored-Consolidated
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;  -- Standard logic types (std_logic, std_logic_vector)
 use IEEE.Numeric_Std.all;      -- Numeric types (unsigned, signed, integer)
-
-entity CustomWrapper is
-    port (
-        -- =============================================================================
-        -- CLOCK AND RESET SIGNALS
-        -- =============================================================================
-        -- These are the basic signals that every digital system needs
-        -- In Moku-Go, these are provided by the platform and cannot be changed
-        Clk : in std_logic;    -- Main system clock (125 MHz in Moku-Go)
-        Reset : in std_logic;  -- System reset signal (1=reset, 0=normal)
-        
-        -- =============================================================================
-        -- INPUT PORTS (PLATFORM-SPECIFIC)
-        -- =============================================================================
-        -- These are the input signals that Moku-Go provides
-        -- In BasicBlock, we don't use these inputs (they're for other applications)
-        -- But we must declare them to maintain platform compatibility
-        InputA : in signed(15 downto 0);  -- Input signal A (unused in BasicBlock)
-        InputB : in signed(15 downto 0);  -- Input signal B (unused in BasicBlock)
-        InputC : in signed(15 downto 0);  -- Input signal C (unused in BasicBlock)
-        InputD : in signed(15 downto 0);  -- Input signal D (unused in BasicBlock)
-        
-        -- =============================================================================
-        -- OUTPUT PORTS (PLATFORM-SPECIFIC)
-        -- =============================================================================
-        -- These are the output signals that go to the Moku-Go analog outputs
-        -- Each output is 16-bit signed (-32768 to +32767) for fine control
-        -- These will display our LED patterns as analog signals
-        OutputA : out signed(15 downto 0);  -- LED pattern for Output A
-        OutputB : out signed(15 downto 0);  -- LED pattern for Output B
-        OutputC : out signed(15 downto 0);  -- LED pattern for Output C
-        OutputD : out signed(15 downto 0);  -- LED pattern for Output D
-        
-        -- =============================================================================
-        -- CONTROL REGISTERS (PLATFORM-SPECIFIC)
-        -- =============================================================================
-        -- These are the control registers that configure the BasicBlock module
-        -- In Moku-Go, these are typically set by software or external control
-        -- We use 5 registers (Control0-4) for our configuration
-        Control0 : in std_logic_vector(31 downto 0);  -- Global configuration
-        Control1 : in std_logic_vector(31 downto 0);  -- Output A configuration
-        Control2 : in std_logic_vector(31 downto 0);  -- Output B configuration
-        Control3 : in std_logic_vector(31 downto 0);  -- Output C configuration
-        Control4 : in std_logic_vector(31 downto 0);  -- Output D configuration
-        
-        -- =============================================================================
-        -- UNUSED CONTROL REGISTERS
-        -- =============================================================================
-        -- These control registers are not used by BasicBlock
-        -- But we must declare them to maintain platform compatibility
-        -- They're available for future expansion or other features
-        Control5 : in std_logic_vector(31 downto 0);   -- Reserved for future use
-        Control6 : in std_logic_vector(31 downto 0);   -- Reserved for future use
-        Control7 : in std_logic_vector(31 downto 0);   -- Reserved for future use
-        Control8 : in std_logic_vector(31 downto 0);   -- Reserved for future use
-        Control9 : in std_logic_vector(31 downto 0);   -- Reserved for future use
-        Control10 : in std_logic_vector(31 downto 0);  -- Reserved for future use
-        Control11 : in std_logic_vector(31 downto 0);  -- Reserved for future use
-        Control12 : in std_logic_vector(31 downto 0);  -- Reserved for future use
-        Control13 : in std_logic_vector(31 downto 0);  -- Reserved for future use
-        Control14 : in std_logic_vector(31 downto 0);  -- Reserved for future use
-        Control15 : in std_logic_vector(31 downto 0)   -- Reserved for future use
-    );
-end entity CustomWrapper;
 
 architecture Behavioural of CustomWrapper is
     -- =============================================================================

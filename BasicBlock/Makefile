@@ -11,6 +11,8 @@
 #                  - Compatible with MCC (Moku Cloud Compiler)
 #                  - Uses GHDL for VHDL compilation and simulation
 # 
+# REFACTORED: Now uses BasicBlock.vhd (architecture-only) for MCC compatibility
+# 
 # LEARNING OBJECTIVES:
 #   1. Understanding Makefile syntax and automation
 #   2. Learning about VHDL compilation order and dependencies
@@ -26,12 +28,14 @@
 
 # VHDL source files - these are the files we need to compile
 # The order is important: packages must be compiled before modules that use them
+# Note: CustomWrapper.vhd provides the entity declaration that BasicBlock.vhd implements
 VHDL_FILES = \
 	common/led_pattern_pkg.vhd \
 	common/basicblock_pkg.vhd \
 	core/basicblock_core.vhd \
 	wrapper/basicblock_wrapper.vhd \
-	BasicBlock_Top.vhd
+	../MokuModules/CustomWrapper.vhd \
+	BasicBlock.vhd
 
 # Top-level entity name - this is the main module that gets synthesized
 # In BasicBlock, this is "CustomWrapper" (the platform interface)
@@ -200,7 +204,8 @@ deps: analyze
 		echo "  \"basicblock_pkg\" [label=\"basicblock_pkg.vhd\"];" >> basicblock_deps.dot; \
 		echo "  \"basicblock_core\" [label=\"basicblock_core.vhd\"];" >> basicblock_deps.dot; \
 		echo "  \"basicblock_wrapper\" [label=\"basicblock_wrapper.vhd\"];" >> basicblock_deps.dot; \
-		echo "  \"BasicBlock_Top\" [label=\"BasicBlock_Top.vhd\"];" >> basicblock_deps.dot; \
+		echo "  \"CustomWrapper\" [label=\"CustomWrapper.vhd\"];" >> basicblock_deps.dot; \
+		echo "  \"BasicBlock\" [label=\"BasicBlock.vhd\"];" >> basicblock_deps.dot; \
 		echo "" >> basicblock_deps.dot; \
 		echo "  // Dependencies" >> basicblock_deps.dot; \
 		echo "  \"basicblock_pkg\" -> \"led_pattern_pkg\";" >> basicblock_deps.dot; \
@@ -208,7 +213,8 @@ deps: analyze
 		echo "  \"basicblock_core\" -> \"basicblock_pkg\";" >> basicblock_deps.dot; \
 		echo "  \"basicblock_wrapper\" -> \"basicblock_pkg\";" >> basicblock_deps.dot; \
 		echo "  \"basicblock_wrapper\" -> \"basicblock_core\";" >> basicblock_deps.dot; \
-		echo "  \"BasicBlock_Top\" -> \"basicblock_wrapper\";" >> basicblock_deps.dot; \
+		echo "  \"CustomWrapper\" -> \"basicblock_wrapper\";" >> basicblock_deps.dot; \
+		echo "  \"BasicBlock\" -> \"CustomWrapper\";" >> basicblock_deps.dot; \
 		echo "}" >> basicblock_deps.dot; \
 		dot -Tpng basicblock_deps.dot -o basicblock_deps.png; \
 		echo "Dependency graph saved to basicblock_deps.png"; \
@@ -238,8 +244,11 @@ core/basicblock_core.vhd: common/led_pattern_pkg.vhd common/basicblock_pkg.vhd
 # basicblock_wrapper.vhd depends on the core and packages
 wrapper/basicblock_wrapper.vhd: common/basicblock_pkg.vhd core/basicblock_core.vhd
 
-# BasicBlock_Top.vhd depends on the wrapper
-BasicBlock_Top.vhd: wrapper/basicblock_wrapper.vhd
+# CustomWrapper.vhd depends on the wrapper
+../MokuModules/CustomWrapper.vhd: wrapper/basicblock_wrapper.vhd
+
+# BasicBlock.vhd depends on the CustomWrapper
+BasicBlock.vhd: ../MokuModules/CustomWrapper.vhd
 
 # =============================================================================
 # BUILD NOTES - Additional information for developers
