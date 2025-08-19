@@ -124,13 +124,19 @@ begin
     -- =============================================================================
     -- CLOCK DIVIDER INSTANTIATION
     -- =============================================================================
-    -- Instantiate the clk_divider module
-    u_clk_divider: entity work.clk_divider
+    -- Instantiate the unified ClockDivider module
+    u_clk_divider: entity work.clock_divider
+        generic map (
+            DIVIDER_WIDTH => 4,               -- 4-bit divider for ProbeDriver (CR0[27:24])
+            MAX_DIVIDER => 15
+        )
         port map (
             clk_in      => clk,
             reset       => reset,
-            divider_sel => clock_divider_sel,  -- CR0[27:24] controls divider
-            clk_en      => probe_clk_en        -- Clock enable for ProbeDriver
+            divider     => "0000" & clock_divider_sel,  -- Extend 4-bit to 16-bit
+            enable      => '1',                         -- Always enabled
+            clk_out     => open,                        -- Not used in ProbeDriver
+            clk_out_en  => probe_clk_en                 -- Clock enable for ProbeDriver
         );
     
     -- =============================================================================

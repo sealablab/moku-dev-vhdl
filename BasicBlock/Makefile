@@ -32,6 +32,7 @@
 VHDL_FILES = \
 	common/led_pattern_pkg.vhd \
 	common/basicblock_pkg.vhd \
+	../common/clock_divider.vhd \
 	core/basicblock_core.vhd \
 	wrapper/basicblock_wrapper.vhd \
 	../MokuModules/CustomWrapper.vhd \

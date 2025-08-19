@@ -121,17 +121,8 @@ architecture rtl of basicblock_wrapper is
         );
     end component;
     
-    -- Clock divider component - this is the existing clk-divider module
-    -- We'll instantiate this to provide flexible timing control
-    component clk_divider is
-        port (
-            clk_in     : in  std_logic;                    -- Input clock (125 MHz)
-            clk_out    : out std_logic;                    -- Output clock (divided frequency)
-            ratio      : in  std_logic_vector(15 downto 0); -- Division ratio
-            enable     : in  std_logic;                    -- Enable signal
-            reset      : in  std_logic                     -- Reset signal
-        );
-    end component;
+    -- Note: ClockDivider is instantiated using direct entity instantiation
+    -- No component declaration needed
     
 begin
     -- =============================================================================
@@ -171,6 +162,11 @@ begin
     -- This prevents unnecessary power consumption when disabled
     core_enable <= global_config.master_enable;
     
+    -- Clock divider control signals
+    -- These control the clock divider behavior based on global configuration
+    clk_divider_ratio <= std_logic_vector(global_config.clock_divider);
+    clk_divider_enable <= global_config.master_enable;
+    
     -- =============================================================================
     -- CLOCK DIVIDER INSTANTIATION
     -- =============================================================================
@@ -178,15 +174,19 @@ begin
     -- The clk-divider provides flexible timing control for our LED patterns
     
     -- Instantiate the clock divider module
-    -- This creates an instance of the existing clk-divider module
+    -- This creates an instance of our unified ClockDivider module
     -- We connect our signals to its ports using port mapping
-    clock_divider_inst : clk_divider
+    clock_divider_inst : entity work.clock_divider
+        generic map (
+            DIVIDER_WIDTH => 16,              -- 16-bit divider for BasicBlock
+            MAX_DIVIDER => 65535
+        )
         port map (
-            clk_in  => clk,                    -- Connect our main clock
-            clk_out => clk_divider_output,     -- Get the divided clock output
-            ratio   => clk_divider_ratio,      -- Set the division ratio
-            enable  => clk_divider_enable,     -- Enable/disable the divider
-            reset   => reset                   -- Reset the divider
+            clk_in      => clk,                    -- Connect our main clock
+            clk_out     => clk_divider_output,     -- Get the divided clock output
+            divider     => clk_divider_ratio,      -- Set the division factor
+            enable      => clk_divider_enable,     -- Enable/disable the divider
+            reset       => reset                   -- Reset the divider
         );
     
     -- =============================================================================

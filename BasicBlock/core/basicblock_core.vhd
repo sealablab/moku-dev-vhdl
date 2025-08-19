@@ -45,11 +45,11 @@ entity basicblock_core is
         -- =============================================================================
         -- CLOCK DIVIDER INTEGRATION
         -- =============================================================================
-        -- These signals connect to the existing clk-divider module
-        -- The clk-divider module provides flexible timing control
+        -- These signals connect to the clock divider module in the wrapper
+        -- The wrapper instantiates the clock divider and passes control signals
         clk_divider_enable    : out std_logic;  -- Enable signal for clock divider
         clk_divider_ratio     : out std_logic_vector(15 downto 0); -- Division ratio
-        clk_divider_output    : out std_logic;  -- Divided clock output from clk-divider
+        clk_divider_output    : in  std_logic;  -- Divided clock input from wrapper
         
         -- =============================================================================
         -- CONFIGURATION INPUTS
@@ -121,17 +121,8 @@ architecture rtl of basicblock_core is
     -- COMPONENT DECLARATIONS - These tell VHDL about external modules we'll use
     -- =============================================================================
     
-    -- Clock divider component - this is the existing clk-divider module
-    -- We'll instantiate this to provide flexible timing control
-    component clk_divider is
-        port (
-            clk_in     : in  std_logic;                    -- Input clock (125 MHz)
-            clk_out    : out std_logic;                    -- Output clock (divided frequency)
-            ratio      : in  std_logic_vector(15 downto 0); -- Division ratio
-            enable     : in  std_logic;                    -- Enable signal
-            reset      : in  std_logic                     -- Reset signal
-        );
-    end component;
+    -- Note: ClockDivider is instantiated in the wrapper, not in the core
+    -- The core receives clk_divider_output as an input signal
     
 begin
     -- =============================================================================
@@ -141,21 +132,12 @@ begin
     -- The clk-divider provides flexible timing control for our LED patterns
     
     -- Connect our clock divider control signals to the output ports
-    -- This allows external modules to control the clock divider
+    -- This allows the wrapper to control the clock divider
     clk_divider_enable <= clk_div_en;
     clk_divider_ratio <= clk_div_ratio;
     
-    -- Instantiate the clock divider module
-    -- This creates an instance of the existing clk-divider module
-    -- We connect our signals to its ports
-    clock_divider_inst : clk_divider
-        port map (
-            clk_in  => clk,                    -- Connect our main clock
-            clk_out => clk_divider_output,     -- Get the divided clock output
-            ratio   => clk_div_ratio,          -- Set the division ratio
-            enable  => clk_div_en,             -- Enable/disable the divider
-            reset   => reset                   -- Reset the divider
-        );
+    -- Note: ClockDivider is instantiated in the wrapper, not in the core
+    -- The core receives clk_divider_output as an input signal from the wrapper
     
     -- =============================================================================
     -- CLOCK DIVIDER CONTROL LOGIC
