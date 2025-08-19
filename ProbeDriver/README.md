@@ -1,44 +1,10 @@
 # ProbeDriver - Complete Fault Injection Probe System
 
-## Overview
-
-The `ProbeDriver.vhd` file represents the complete, consolidated implementation of the fault injection probe driver system. This file provides the `Behavioural` architecture for the `CustomWrapper` entity that MCC (Moku Cloud Compiler) expects, integrating all probe driver functionality into a single, maintainable module.
-
-## Design Philosophy
-
-### Consolidation Strategy
-### Top-Level Integration
-```
-MCC CustomWrapper Entity (provided by platform)
-           ↓
-ProbeDriver.vhd (Behavioural architecture)
-           ↓
-    ┌─────────────────┐
-    │ Clock Divider   │ ← For convenient debugging 
-    └─────────────────┘
-           ↓
-    ┌─────────────────┐
-    │ Probe Core/Wrapp│ ← Routes to core state machine
-    └─────────────────┘
-           ↓
-    ┌─────────────────┐
-    │ LED Management  │ ← Visual feedback
-    └─────────────────┘
-```
-
 
 ## Interface Specification
 
-### Platform Interface Ports
 
-#### Clock and Control
-| Port | Type | Width | Description |
-|------|------|-------|-------------|
-| `Clk` | in | 1 | System clock input |
-| `Reset` | in | 1 | Active-high system reset |
-
-
-#### Control Registers
+### Control Registers
 | Port | Type | Width | Description |
 |------|------|-------|-------------|
 | `Control0` | in | 32 | Primary control register |
@@ -68,7 +34,7 @@ Bit 15-0:  Pulse Duration (D15:D0) - 16-bit
 - **Bits 22-16 (I6:I0)**: 7-bit intensity index (0-100 range)
 - **Bits 15-0 (D15:D0)**: 16-bit pulse width in clock cycles
 
-### Control1 - Secondary Control Register
+## Control1 - Secondary Control Register
 ```
 Bit 31-16: Cooldown Period (C15:C0) - 16-bit
 Bit 15-0:  Reserved for future use
