@@ -7,7 +7,6 @@ library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.probe_driver_pkg.all;
-use work.IntensityLut_pkg.all;
 
 entity probe_driver_wrapper is
     port (
@@ -66,7 +65,7 @@ architecture behavioural of probe_driver_wrapper is
     signal intensity_index : probe_intensity_index_type;  -- 7-bit intensity index
     signal pulse_duration : probe_duration_type;
     signal cooldown_period : probe_cooldown_type;
-    signal led_reset : std_logic;
+    signal status_clear : std_logic;
     
 begin
     -- =============================================================================
@@ -80,9 +79,9 @@ begin
     intensity_index <= Control0(22 downto 16);
     pulse_duration <= Control0(15 downto 0);
     
-    -- Control1: [31:16] = Cooldown, [15] = LED reset, [14:0] = Reserved
+    -- Control1: [31:16] = Cooldown, [15] = Status clear (clears sticky flags and LEDs), [14:0] = Reserved
     cooldown_period <= Control1(31 downto 16);
-    led_reset <= Control1(15);
+    status_clear <= Control1(15);
     
     -- =============================================================================
     -- STATUS LED LATCH LOGIC
@@ -94,7 +93,7 @@ begin
             if reset = '1' then
                 -- Clear all LED signals on system reset
                 status_leds <= (others => '0');
-            elsif led_reset = '1' then
+            elsif status_clear = '1' then
                 -- Clear all LED signals on LED reset via Control1[15]
                 status_leds <= (others => '0');
             else
@@ -143,8 +142,9 @@ begin
             -- Clock and Control
             clk                    => clk,
             reset                  => reset,
-            enable                 => not global_enable,  -- Enable when Control0(31) = '0' (auto-fire with safe defaults)
+            enable                 => global_enable,      -- Enable when Control0(31) = '1'
             clk_en                 => probe_clk_en,      -- Clock enable from divider
+            status_clear           => status_clear,
             
             -- Configuration
             config_intensity_index => intensity_index,   -- 7-bit Index into IntensityLUT

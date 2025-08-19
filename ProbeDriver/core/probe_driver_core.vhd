@@ -16,6 +16,8 @@ entity probe_driver_core is
         reset                  : in  std_logic;
         enable                 : in  std_logic;
         clk_en                 : in  std_logic;
+        -- Sticky status control
+        status_clear           : in  std_logic;
         
         -- Configuration
         config_intensity_index : in  probe_intensity_index_type;
@@ -51,11 +53,15 @@ architecture rtl of probe_driver_core is
     -- Auto-fire on reset: fires once using safe defaults after first enable
     signal reset_fired : std_logic := '0';
     
+    -- Sticky FIRED flag (bit 2) - set after a completed pulse, cleared by reset or status_clear
+    signal fired_flag : std_logic := '0';
+    
 begin
     -- =============================================================================
     -- CLOCKED PROCESS - State machine with status register updates
     -- =============================================================================
-    state_machine: process(clk) 
+    state_machine: process(clk)
+        variable next_status : probe_status_type;
     begin
         if rising_edge(clk) and clk_en = '1' then
             if reset = '1' then
@@ -66,6 +72,7 @@ begin
                 general_counter <= (others => '0');
                 status_reg <= (others => '0');
                 reset_fired <= '0';
+                fired_flag <= '0';
                 
                 -- Apply safe defaults using package functions
                 intensity_index <= get_safe_intensity_index(config_intensity_index);
@@ -84,14 +91,10 @@ begin
                                 current_state <= ARMED;
                                 pulse_counter <= (others => '0');
                                 reset_fired <= '1';
-                                -- Update status register
-                                status_reg <= "0000000000000001";  -- Only bit 0 set (ARMED)
                             else
                                 -- Normal: go to ARMED state
                                 current_state <= ARMED;
                                 pulse_counter <= (others => '0');
-                                -- Update status register
-                                status_reg <= "0000000000000001";  -- Only bit 0 set (ARMED)
                             end if;
                         end if;
                         
@@ -100,18 +103,16 @@ begin
                         if probe_trigger_input = '1' then
                             current_state <= FIRING;
                             pulse_counter <= unsigned(pulse_duration);
-                            -- Update status register
-                            status_reg <= "0000000000000010";  -- Only bit 1 set (FIRING)
                         end if;
                         
                     when FIRING =>
                         -- Actively firing the probe with duration
                         if pulse_counter = 0 then
-                                                    -- Duration complete, move to COOL_DOWN
-                        current_state <= COOL_DOWN;
-                        cooldown_counter <= (others => '0');
-                        -- Update status register - use explicit bit assignment
-                        status_reg <= "0000000000001000";  -- Only bit 3 set (COOL_DOWN)
+                            -- Duration complete, move to COOL_DOWN
+                            current_state <= COOL_DOWN;
+                            cooldown_counter <= (others => '0');
+                            -- Set sticky FIRED flag on completion
+                            fired_flag <= '1';
                         else
                             -- Decrement counter
                             pulse_counter <= pulse_counter - 1;
@@ -124,13 +125,9 @@ begin
                             if probe_auto_arm = '1' then
                                 -- Auto-arm: go directly to ARMED
                                 current_state <= ARMED;
-                                -- Update status register
-                                status_reg <= "0000000000000001";  -- Only bit 0 set (ARMED)
                             else
                                 -- Normal behavior: go to IDLE
                                 current_state <= IDLE;
-                                -- Update status register
-                                status_reg <= "0000000000000000";  -- All bits clear (IDLE)
                             end if;
                         else
                             cooldown_counter <= cooldown_counter + 1;
@@ -138,13 +135,33 @@ begin
                         
                     when others =>
                         current_state <= IDLE;
-                        status_reg <= (others => '0');
                 end case;
                 
+                -- Clear sticky FIRED flag on explicit clear
+                if status_clear = '1' then
+                    fired_flag <= '0';
+                end if;
+
                 -- Update general counter when enabled
                 if enable = '1' then
                     general_counter <= general_counter + 1;
                 end if;
+
+                -- Build status register from current state and sticky flags
+                next_status := (others => '0');
+                if current_state = ARMED then
+                    next_status(0) := '1';
+                end if;
+                if current_state = FIRING then
+                    next_status(1) := '1';
+                end if;
+                if current_state = COOL_DOWN then
+                    next_status(3) := '1';
+                end if;
+                -- Sticky FIRED event bit
+                next_status(2) := fired_flag;
+                -- Assign combined status
+                status_reg <= next_status;
             end if;
         end if;
     end process state_machine;

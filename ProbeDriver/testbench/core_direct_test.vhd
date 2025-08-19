@@ -1,16 +1,16 @@
--- probe_driver_core_tb.vhd
--- Testbench for the refactored probe driver core component
--- Tests basic functionality and state machine transitions
+-- core_direct_test.vhd
+-- Direct test of the core component to isolate auto-fire issues
+-- PHASE 2: Debug Core Auto-fire Logic
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.probe_driver_pkg.all;
 
-entity probe_driver_core_tb is
-end entity probe_driver_core_tb;
+entity core_direct_test is
+end entity core_direct_test;
 
-architecture testbench of probe_driver_core_tb is
+architecture testbench of core_direct_test is
     -- Clock period
     constant CLK_PERIOD : time := 10 ns;
     
@@ -22,9 +22,9 @@ architecture testbench of probe_driver_core_tb is
     signal status_clear : std_logic := '0';
     
     -- Configuration signals
-    signal config_intensity_index : probe_intensity_index_type := "0000001";  -- Minimum intensity
-    signal config_pulse_duration : probe_duration_type := x"000A";          -- 10 cycles
-    signal config_cooldown_period : probe_cooldown_type := x"0005";         -- 5 cycles
+    signal config_intensity_index : probe_intensity_index_type := "0000001";
+    signal config_pulse_duration : probe_duration_type := x"0005";
+    signal config_cooldown_period : probe_cooldown_type := x"0003";
     
     -- Input signals
     signal probe_trigger_input : std_logic := '0';
@@ -66,39 +66,33 @@ begin
         -- Initialize
         wait for CLK_PERIOD * 2;
         
-        -- Test 1: Reset behavior
-        report "Test 1: Reset behavior";
+        -- Test 1: Reset and check initial state
+        report "=== TEST 1: Reset and initial state ===";
         reset <= '1';
-        wait for CLK_PERIOD * 2;
+        wait for CLK_PERIOD * 3;
+        report "Status after reset: " & to_string(probe_status_register);
+        
         reset <= '0';
-        wait for CLK_PERIOD * 2;
+        wait for CLK_PERIOD * 3;
+        report "Status after reset cleared: " & to_string(probe_status_register);
         
-        -- Test 2: Enable and auto-fire
-        report "Test 2: Enable and auto-fire";
+        -- Test 2: Enable and check auto-fire
+        report "=== TEST 2: Enable and auto-fire ===";
         enable <= '1';
-        wait for CLK_PERIOD * 2;
+        wait for CLK_PERIOD * 3;
+        report "Status after enable: " & to_string(probe_status_register);
         
-        -- Test 3: Wait for auto-fire completion
-        report "Test 3: Wait for auto-fire completion";
-        wait for CLK_PERIOD * 20;  -- Wait for pulse + cooldown
-        
-        -- Test 4: Manual trigger
-        report "Test 4: Manual trigger";
-        probe_trigger_input <= '1';
-        wait for CLK_PERIOD;
-        probe_trigger_input <= '0';
-        wait for CLK_PERIOD * 20;  -- Wait for pulse + cooldown
-        
-        -- Test 5: Auto-arm feature
-        report "Test 5: Auto-arm feature";
-        probe_auto_arm <= '1';
-        probe_trigger_input <= '1';
-        wait for CLK_PERIOD;
-        probe_trigger_input <= '0';
-        wait for CLK_PERIOD * 20;  -- Wait for pulse + cooldown
+        -- Test 3: Wait for state transitions
+        report "=== TEST 3: Wait for state transitions ===";
+        wait for CLK_PERIOD * 5;
+        report "Status after 5 cycles: " & to_string(probe_status_register);
+        wait for CLK_PERIOD * 5;
+        report "Status after 10 cycles: " & to_string(probe_status_register);
+        wait for CLK_PERIOD * 5;
+        report "Status after 15 cycles: " & to_string(probe_status_register);
         
         -- Test complete
-        report "ALL TESTS PASSED";
+        report "=== CORE DIRECT TEST COMPLETE ===";
         test_done <= true;
         wait;
     end process stimulus;
