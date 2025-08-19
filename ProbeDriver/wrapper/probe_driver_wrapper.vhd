@@ -51,8 +51,8 @@ architecture behavioural of probe_driver_wrapper is
     signal probe_intensity_output : signed(15 downto 0);
     signal probe_status_register  : probe_status_type;
     
-    -- Clock enable signal (always enabled for now)
-    signal probe_clk_en : std_logic := '1';
+    -- Clock divider signals
+    signal probe_clk_en : std_logic;
     
     -- LED Status Signals for visual feedback
     signal status_leds : std_logic_vector(4 downto 0);
@@ -122,11 +122,16 @@ begin
     end process led_status_process;
     
     -- =============================================================================
-    -- CLOCK DIVIDER (SIMPLIFIED)
+    -- CLOCK DIVIDER INSTANTIATION
     -- =============================================================================
-    -- Clock divider functionality simplified - always enabled for now
-    -- TODO: Re-implement clock divider when clk_divider entity is available
-    probe_clk_en <= '1';  -- Always enabled
+    -- Instantiate the clk_divider module
+    u_clk_divider: entity work.clk_divider
+        port map (
+            clk_in      => clk,
+            reset       => reset,
+            divider_sel => clock_divider_sel,  -- CR0[27:24] controls divider
+            clk_en      => probe_clk_en        -- Clock enable for ProbeDriver
+        );
     
     -- =============================================================================
     -- PROBE DRIVER CORE INSTANTIATION

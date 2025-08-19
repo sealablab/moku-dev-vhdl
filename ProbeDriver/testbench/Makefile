@@ -57,10 +57,11 @@ run_core: elaborate_core
 # Test wrapper component only
 wrapper_test: analyze_wrapper elaborate_wrapper run_wrapper
 
-analyze_wrapper: ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd ../wrapper/probe_driver_wrapper.vhd
+analyze_wrapper: ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd ../wrapper/probe_driver_wrapper.vhd ../../clk-divider/clk_divider.vhd
 	@echo "=== Analyzing wrapper component files ==="
 	$(GHDL) -a --std=08 --work=work ../common/probe_driver_pkg.vhd
 	$(GHDL) -a --std=08 --work=work ../core/probe_driver_core.vhd
+	$(GHDL) -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
 	$(GHDL) -a --std=08 --work=work ../wrapper/probe_driver_wrapper.vhd
 	$(GHDL) -a --std=08 --work=work $(WRAPPER_TB).vhd
 	@echo "=== Wrapper analysis complete ==="
