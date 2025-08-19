@@ -10,7 +10,7 @@ The ProbeDriver uses a 16-register control interface (Control0-Control15) with t
 ┌─────────────────────────────────────────────────────────────────┐
 │ 31 │ 30 │ 29 │ 28 │ 27 │ 26 │ 25 │ 24 │ 23 │ 22 │ 21 │ 20 │ 19 │ 18 │ 17 │ 16 │ 15 │ 14 │ 13 │ 12 │ 11 │ 10 │ 09 │ 08 │ 07 │ 06 │ 05 │ 04 │ 03 │ 02 │ 01 │ 00 │
 ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
-│ EN │ AA │  R  │  R  │ CD3 │ CD2 │ CD1 │ CD0 │ ST  │ I6 │ I5 │ I4 │ I3 │ I2 │ I1 │ I0 │ D15│ D14│ D13│ D12│ D11│ D10│ D09│ D08│ D07│ D06│ D05│ D04│ D03│ D02│ D01│ D00│
+│ EN │ AA │  R  │ SC │ CD3 │ CD2 │ CD1 │ CD0 │ ST  │ I6 │ I5 │ I4 │ I3 │ I2 │ I1 │ I0 │ D15│ D14│ D13│ D12│ D11│ D10│ D09│ D08│ D07│ D06│ D05│ D04│ D03│ D02│ D01│ D00│
 └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
 ```
 
@@ -21,7 +21,10 @@ The ProbeDriver uses a 16-register control interface (Control0-Control15) with t
 - **Bit 30 (AA)**: Auto-Arm
   - `0` = Manual arm required
   - `1` = Auto-arm on reset (transitions to ARMED state)
-- **Bits 29-28**: Reserved (future use)
+- **Bit 29**: Reserved (future use)
+- **Bit 28 (SC)**: Status Clear
+  - `0` = No action
+  - `1` = Clear all sticky status flags and LED indicators
 - **Bits 27-24 (CD3:CD0)**: Clock Divider Selection
   - `0000` = ÷1 (full speed)
   - `0001` = ÷2 (half speed)
@@ -51,12 +54,12 @@ The ProbeDriver uses a 16-register control interface (Control0-Control15) with t
   - Range: `0x0000` to `0xFFFF` (0-65535 clock cycles)
   - Minimum safe value: `0x0064` (100 clock cycles)
 
-### **Control1 (32 bits) - Timing and Status Control**
+### **Control1 (32 bits) - Timing Control**
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ 31 │ 30 │ 29 │ 28 │ 27 │ 26 │ 25 │ 24 │ 23 │ 22 │ 21 │ 20 │ 19 │ 18 │ 17 │ 16 │ 15 │ 14 │ 13 │ 12 │ 11 │ 10 │ 09 │ 08 │ 07 │ 06 │ 05 │ 04 │ 03 │ 02 │ 01 │ 00 │
 ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
-│ C15│ C14│ C13│ C12│ C11│ C10│ C09│ C08│ C07│ C06│ C05│ C04│ C03│ C02│ C01│ C00│ SC │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │
+│ C15│ C14│ C13│ C12│ C11│ C10│ C09│ C08│ C07│ C06│ C05│ C04│ C03│ C02│ C01│ C00│  R │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │  R  │
 └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
 ```
 
@@ -65,10 +68,7 @@ The ProbeDriver uses a 16-register control interface (Control0-Control15) with t
   - Range: `0x0000` to `0xFFFF` (0-65535 clock cycles)
   - Minimum safe value: `0x03E8` (1000 clock cycles)
   - Time between probe pulses
-- **Bit 15 (SC)**: Status Clear
-  - `0` = No action
-  - `1` = Clear all sticky status flags and LED indicators
-- **Bits 14-0**: Reserved (future use)
+- **Bits 15-0**: Reserved (future use)
 
 ## **Status Register (OutputA)**
 The status register provides real-time state information and is mapped to OutputA:
@@ -133,8 +133,8 @@ Control1 <= x"0FFF0000";  -- Cooldown=4095
 ### **6. Status Clear Operation**
 ```vhdl
 -- Clear all status flags and LEDs
-Control1 <= x"00008000";  -- Status Clear=1
--- Then clear it: Control1 <= x"00000000";
+Control0 <= x"10000000";  -- Status Clear=1 (bit 28)
+-- Then clear it: Control0 <= x"00000000";
 ```
 
 ## **Output Port Mapping**

@@ -144,12 +144,12 @@ begin
         Control0(23) <= '0';  -- Clear trigger
         wait for CLK_PERIOD * 40;  -- Wait longer due to clock division
         
-        -- Test Phase 7: Status clear (Control1(15))
-        report "=== PHASE 7: Status clear (Control1(15)) ===";
+        -- Test Phase 7: Status clear (Control0(28))
+        report "=== PHASE 7: Status clear (Control0(28)) ===";
         test_phase <= 7;
-        Control1(15) <= '1';  -- Status clear
+        Control0(28) <= '1';  -- Status clear
         wait for CLK_PERIOD;
-        Control1(15) <= '0';  -- Clear pulse
+        Control0(28) <= '0';  -- Clear pulse
         wait for CLK_PERIOD * 2;
         
         -- Test Phase 8: Disable module (Control0(31) = '0')

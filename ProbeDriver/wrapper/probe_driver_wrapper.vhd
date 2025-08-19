@@ -74,14 +74,14 @@ begin
     -- Control0: [31] = Global enable, [30] = Auto-arm, [27:24] = Clock divider, [23] = Soft trigger, [22:16] = Intensity, [15:0] = Duration
     global_enable <= Control0(31);
     auto_arm <= Control0(30);
+    status_clear <= Control0(28);  -- Status clear (clears sticky flags and LEDs)
     clock_divider_sel <= Control0(27 downto 24);
     soft_trigger <= Control0(23);
     intensity_index <= Control0(22 downto 16);
     pulse_duration <= Control0(15 downto 0);
     
-    -- Control1: [31:16] = Cooldown, [15] = Status clear (clears sticky flags and LEDs), [14:0] = Reserved
+    -- Control1: [31:16] = Cooldown, [15:0] = Reserved
     cooldown_period <= Control1(31 downto 16);
-    status_clear <= Control1(15);
     
     -- =============================================================================
     -- STATUS LED LATCH LOGIC
@@ -94,7 +94,7 @@ begin
                 -- Clear all LED signals on system reset
                 status_leds <= (others => '0');
             elsif status_clear = '1' then
-                -- Clear all LED signals on LED reset via Control1[15]
+                -- Clear all LED signals on LED reset via Control0[28]
                 status_leds <= (others => '0');
             else
                 -- Latch logic: set LED high when status bit goes high
