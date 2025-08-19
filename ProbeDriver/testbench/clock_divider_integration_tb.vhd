@@ -5,8 +5,8 @@
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
-use work.IntensityLut_pkg.all;
-use work.ProbeConfig_pkg.all;
+use work.intensity_lut_pkg.all;
+use work.probe_driver_pkg.all;
 
 entity clock_divider_integration_tb is
 end entity clock_divider_integration_tb;

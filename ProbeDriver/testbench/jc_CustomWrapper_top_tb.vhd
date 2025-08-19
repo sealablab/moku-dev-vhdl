@@ -6,7 +6,7 @@
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
-use work.ProbeConfig_pkg.all;
+use work.probe_driver_pkg.all;
 use work.HumanInterface_pkg.all;
 
 -- NEW APPROACH: Include the standardized package instead of duplicating component declarations
