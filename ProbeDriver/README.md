@@ -199,25 +199,6 @@ function get_safe_duration(duration_in : probe_duration_type) return probe_durat
 function get_safe_cooldown(cooldown_in : probe_cooldown_type) return probe_cooldown_type;
 ```
 
-## Integration with Wrapper
-
-### Relationship to probe_driver_wrapper.vhd
-
-The `ProbeDriver.vhd` and `probe_driver_wrapper.vhd` serve different purposes:
-
-| Aspect | ProbeDriver.vhd | probe_driver_wrapper.vhd |
-|--------|-----------------|--------------------------|
-| **Purpose** | MCC-compatible architecture | Standalone wrapper entity |
-| **Entity** | Uses MCC's CustomWrapper | Self-contained entity |
-| **Usage** | Cloud compilation | Local development/testing |
-| **Interface** | Platform-standard | Platform-standard |
-| **Dependencies** | Relies on MCC entity | Self-contained |
-
-**Note**: Both files provide identical functionality but serve different deployment scenarios. The wrapper is useful for local development and testing, while ProbeDriver.vhd is optimized for MCC synthesis.
-
-## Configuration Guidelines
-
-### Recommended Settings
 
 #### Clock Divider Selection
 - **High Performance**: Use divider 0-3 for maximum responsiveness
@@ -280,38 +261,3 @@ Control0 <= x"10000000";  -- Status Clear=1 (bit 28)
 -- Then clear it: Control0 <= x"00000000";
 ```
 
-## Future Enhancements
-
-### Planned Features
-- **Error Detection**: Enhanced error reporting via reserved status bits
-- **Configuration Validation**: Runtime parameter checking and validation
-- **Performance Metrics**: Timing and efficiency monitoring
-- **Advanced Control**: Additional control registers for complex operations
-
-### Extension Points
-- **Control Registers**: 14 reserved registers available for expansion
-- **Output Ports**: OutputD available for additional status information
-- **Input Ports**: All input ports available for external trigger integration
-- **Status Register**: 11 reserved bits for future status indicators
-
-## Integration Considerations
-
-### Platform Compatibility
-- **Interface Standard**: Follows Moku platform interface conventions
-- **Clock Domain**: Single clock domain design for simplicity
-- **Reset Strategy**: Synchronous reset with proper initialization
-- **Power Management**: Clock divider support for power-sensitive applications
-
-### System Integration
-- **Status Monitoring**: Real-time status available via output ports
-- **Control Interface**: Simple register-based control mechanism
-- **Event Detection**: Sticky flags for event-driven systems
-- **Visual Feedback**: LED indicators for immediate status recognition
-
-### MCC Integration
-- **Entity Declaration**: Provided by MCC platform
-- **Architecture**: Complete implementation in this file
-- **Synthesis Ready**: No compilation conflicts
-- **Cloud Compatible**: Designed for MCC cloud compilation
-
-The supporting packages (`intensity_lut_pkg.vhd` and `probe_driver_pkg.vhd`) provide essential safety, utility, and type management functions that enable the main ProbeDriver.vhd to operate safely and efficiently.
