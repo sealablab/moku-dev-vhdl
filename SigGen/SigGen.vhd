@@ -1,56 +1,14 @@
--- SigGen_Top.vhd
--- Top-level module implementing the CustomWrapper interface for MCC synthesis
--- This module instantiates the refactored SigGen architecture
--- 
--- REFACTORED: Uses the new 3-tier architecture:
---   - siggen_wrapper (interface layer)
---   - siggen_core (signal generation logic)
---   - siggen_pkg (shared package)
+-- SigGen.vhd
+-- MCC-compatible SigGen architecture for CustomWrapper entity
+-- This file provides the complete SigGen implementation as an architecture
+-- Note: MCC provides the CustomWrapper entity declaration, we provide the Behavioural architecture
 --
 -- Date: 2025-01-27
--- Tag: SigGen-v1.0-Refactored
+-- Tag: SigGen-v1.0-Refactored-Consolidated
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
-
-entity CustomWrapper is
-    port (
-        -- Clock and Reset
-        Clk : in std_logic;
-        Reset : in std_logic;
-        
-        -- Input ports (platform-specific)
-        InputA : in signed(15 downto 0);
-        InputB : in signed(15 downto 0);
-        InputC : in signed(15 downto 0);
-        InputD : in signed(15 downto 0);
-        
-        -- Output ports (platform-specific)
-        OutputA : out signed(15 downto 0);
-        OutputB : out signed(15 downto 0);
-        OutputC : out signed(15 downto 0);
-        OutputD : out signed(15 downto 0);
-        
-        -- Control registers (16 x 32-bit)
-        Control0 : in std_logic_vector(31 downto 0);
-        Control1 : in std_logic_vector(31 downto 0);
-        Control2 : in std_logic_vector(31 downto 0);
-        Control3 : in std_logic_vector(31 downto 0);
-        Control4 : in std_logic_vector(31 downto 0);
-        Control5 : in std_logic_vector(31 downto 0);
-        Control6 : in std_logic_vector(31 downto 0);
-        Control7 : in std_logic_vector(31 downto 0);
-        Control8 : in std_logic_vector(31 downto 0);
-        Control9 : in std_logic_vector(31 downto 0);
-        Control10 : in std_logic_vector(31 downto 0);
-        Control11 : in std_logic_vector(31 downto 0);
-        Control12 : in std_logic_vector(31 downto 0);
-        Control13 : in std_logic_vector(31 downto 0);
-        Control14 : in std_logic_vector(31 downto 0);
-        Control15 : in std_logic_vector(31 downto 0)
-    );
-end entity CustomWrapper;
 
 architecture Behavioural of CustomWrapper is
     -- =============================================================================
@@ -118,8 +76,5 @@ begin
     OutputB <= siggen_output_b;
     OutputC <= siggen_output_c;
     OutputD <= siggen_output_d;
-    
-    -- Note: InputA, InputB, InputC, InputD are not used in SigGen
-    -- They are connected for platform compatibility but not processed
     
 end architecture Behavioural;

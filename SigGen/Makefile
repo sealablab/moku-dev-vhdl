@@ -1,5 +1,5 @@
 # Makefile for SigGen Module
-# REFACTORED: Modular design with 3-tier architecture
+# REFACTORED: Modular design with 3-tier architecture and MCC compatibility
 # Follows the same pattern as ProbeDriver Makefile
 
 # =============================================================================
@@ -10,7 +10,8 @@ VHDL_FILES = \
 	common/siggen_pkg.vhd \
 	core/siggen_core.vhd \
 	wrapper/siggen_wrapper.vhd \
-	SigGen_Top.vhd
+	../MokuModules/CustomWrapper.vhd \
+	SigGen.vhd
 
 TOP_LEVEL = CustomWrapper
 WORK_LIB = work
@@ -61,6 +62,10 @@ help:
 	@echo "  clean     - Remove generated files"
 	@echo "  help      - Show this help message"
 	@echo ""
+	@echo "REFACTORED: Architecture-only approach for MCC compatibility"
+	@echo "  - CustomWrapper.vhd provides entity declaration"
+	@echo "  - SigGen.vhd provides architecture implementation"
+	@echo ""
 	@echo "Usage:"
 	@echo "  make [target]"
 	@echo ""
@@ -81,8 +86,11 @@ core/siggen_core.vhd: common/pattern_generator_pkg.vhd common/siggen_pkg.vhd
 # Wrapper depends on packages and core
 wrapper/siggen_wrapper.vhd: common/siggen_pkg.vhd core/siggen_core.vhd
 
-# Top level depends on wrapper
-SigGen_Top.vhd: wrapper/siggen_wrapper.vhd
+# CustomWrapper entity must be analyzed before SigGen architecture
+../MokuModules/CustomWrapper.vhd: wrapper/siggen_wrapper.vhd
+
+# SigGen architecture depends on CustomWrapper entity
+SigGen.vhd: ../MokuModules/CustomWrapper.vhd
 
 # =============================================================================
 # UTILITY TARGETS

@@ -1,12 +1,16 @@
--- SlotBlinker/top_slot_blinker.vhd
--- Top-level file that instantiates enhanced SlotBlinker and connects to CustomWrapper
--- This creates a configurable test pattern generator for all four outputs
+-- EnhancedSlotBlinker.vhd
+-- MCC-compatible EnhancedSlotBlinker architecture for CustomWrapper entity
+-- This file provides the complete EnhancedSlotBlinker implementation as an architecture
+-- Note: MCC provides the CustomWrapper entity declaration, we provide the Behavioural architecture
+--
+-- Date: 2025-01-27
+-- Tag: EnhancedSlotBlinker-v1.0-Refactored-Consolidated
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 
--- When using MCC, we define the behavior of CustomWrapper
+-- When using MCC, we define the behaviour of CustomWrapper
 architecture Behavioural of CustomWrapper is
 begin
 
