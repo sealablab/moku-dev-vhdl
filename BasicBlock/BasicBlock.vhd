@@ -17,26 +17,6 @@ architecture Behavioural of CustomWrapper is
     
     -- BasicBlock wrapper component - this is our main LED pattern generation interface
     -- The wrapper handles control register parsing and module interconnection
-    component basicblock_wrapper is
-        port (
-            -- Clock and Control
-            clk        : in  std_logic;
-            reset      : in  std_logic;
-            
-            -- Control Registers
-            control0   : in  std_logic_vector(31 downto 0);
-            control1   : in  std_logic_vector(31 downto 0);
-            control2   : in  std_logic_vector(31 downto 0);
-            control3   : in  std_logic_vector(31 downto 0);
-            control4   : in  std_logic_vector(31 downto 0);
-            
-            -- Output Signals
-            output_a   : out signed(15 downto 0);
-            output_b   : out signed(15 downto 0);
-            output_c   : out signed(15 downto 0);
-            output_d   : out signed(15 downto 0)
-        );
-    end component;
     
     -- =============================================================================
     -- INTERNAL SIGNALS - These are like "internal variables" in the module
@@ -60,7 +40,7 @@ begin
     -- Instantiate the BasicBlock wrapper module
     -- This creates an instance of our main LED pattern generation interface
     -- We connect all the platform signals to the wrapper using port mapping
-    basicblock_wrapper_inst : basicblock_wrapper
+    basicblock_wrapper_inst : entity work.basicblock_wrapper
         port map (
             -- Clock and Control
             clk        => Clk,        -- Connect platform clock

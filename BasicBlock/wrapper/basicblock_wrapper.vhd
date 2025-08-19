@@ -94,32 +94,6 @@ architecture rtl of basicblock_wrapper is
     
     -- BasicBlock core component - this is our main LED pattern generation module
     -- We'll instantiate this to create the actual LED patterns
-    component basicblock_core is
-        port (
-            -- Clock and Control
-            clk                    : in  std_logic;
-            reset                  : in  std_logic;
-            enable                 : in  std_logic;
-            
-            -- Clock Divider Integration
-            clk_divider_enable    : out std_logic;
-            clk_divider_ratio     : out std_logic_vector(15 downto 0);
-            clk_divider_output    : in  std_logic;
-            
-            -- Configuration Inputs
-            global_config          : in  global_config_type;
-            output_a_config        : in  output_config_type;
-            output_b_config        : in  output_config_type;
-            output_c_config        : in  output_config_type;
-            output_d_config        : in  output_config_type;
-            
-            -- Output Signals
-            output_a               : out signed(15 downto 0);
-            output_b               : out signed(15 downto 0);
-            output_c               : out signed(15 downto 0);
-            output_d               : out signed(15 downto 0)
-        );
-    end component;
     
     -- Note: ClockDivider is instantiated using direct entity instantiation
     -- No component declaration needed
@@ -198,7 +172,7 @@ begin
     -- Instantiate the BasicBlock core module
     -- This creates an instance of our main LED pattern generation module
     -- We connect all the configuration and timing signals
-    basicblock_core_inst : basicblock_core
+    basicblock_core_inst : entity work.basicblock_core
         port map (
             -- Clock and Control
             clk                    => clk,                    -- Connect main clock
