@@ -7,7 +7,7 @@ work-obj*.cf
 # Testbench Executables
 *_tb
 *_test
-*test*
+*test
 
 # Backup and Archive Files
 *.tar
