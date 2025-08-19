@@ -1,6 +1,6 @@
 -- probe_driver_core.vhd
 -- Core state machine implementation for the probe driver
--- REFACTORED: Pure state machine logic, no interface concerns
+-- REFACTORED: Simple state machine with accurate status register reflection
 -- Follows VHDL-2008 standards and industry best practices
 
 library IEEE;
@@ -45,7 +45,7 @@ architecture rtl of probe_driver_core is
     signal pulse_duration : probe_duration_type;
     signal cooldown_period : probe_cooldown_type;
     
-    -- Status register
+    -- Status register - reflects current state
     signal status_reg : probe_status_type := (others => '0');
     
     -- Auto-fire on reset: fires once using safe defaults after first enable
@@ -53,7 +53,7 @@ architecture rtl of probe_driver_core is
     
 begin
     -- =============================================================================
-    -- CLOCKED PROCESS - State machine and timing logic
+    -- CLOCKED PROCESS - State machine with status register updates
     -- =============================================================================
     state_machine: process(clk) 
     begin
@@ -78,33 +78,40 @@ begin
                     when IDLE =>
                         -- Wait for enable signal
                         if enable = '1' then
-                            current_state <= ARMED;
-                            pulse_counter <= (others => '0');
-                            status_reg <= set_probe_status_bit(status_reg, 0, '1');  -- Set bit 0 when entering ARMED
-                            
-                            -- Auto-fire once on first enable after reset
+                            -- After reset, automatically go to ARMED state
                             if reset_fired = '0' then
+                                -- Auto-arm: go directly to ARMED state
+                                current_state <= ARMED;
+                                pulse_counter <= (others => '0');
                                 reset_fired <= '1';
+                                -- Update status register
+                                status_reg <= "0000000000000001";  -- Only bit 0 set (ARMED)
+                            else
+                                -- Normal: go to ARMED state
+                                current_state <= ARMED;
+                                pulse_counter <= (others => '0');
+                                -- Update status register
+                                status_reg <= "0000000000000001";  -- Only bit 0 set (ARMED)
                             end if;
                         end if;
                         
                     when ARMED =>
-                        -- Wait for trigger input OR auto-advance on first fire after reset
-                        if probe_trigger_input = '1' or (reset_fired = '0') then
+                        -- Wait for trigger input
+                        if probe_trigger_input = '1' then
                             current_state <= FIRING;
-                            -- Initialize pulse counter to duration value
                             pulse_counter <= unsigned(pulse_duration);
-                            status_reg <= set_probe_status_bit(status_reg, 1, '1');  -- Set bit 1 when entering FIRING
+                            -- Update status register
+                            status_reg <= "0000000000000010";  -- Only bit 1 set (FIRING)
                         end if;
                         
                     when FIRING =>
                         -- Actively firing the probe with duration
                         if pulse_counter = 0 then
-                            -- Duration complete, move directly to COOL_DOWN
-                            current_state <= COOL_DOWN;
-                            cooldown_counter <= (others => '0');
-                            status_reg <= set_probe_status_bit(status_reg, 2, '1');  -- Set bit 2 to indicate pulse completed
-                            status_reg <= set_probe_status_bit(status_reg, 3, '1');  -- Set bit 3 when entering COOL_DOWN
+                                                    -- Duration complete, move to COOL_DOWN
+                        current_state <= COOL_DOWN;
+                        cooldown_counter <= (others => '0');
+                        -- Update status register - use explicit bit assignment
+                        status_reg <= "0000000000001000";  -- Only bit 3 set (COOL_DOWN)
                         else
                             -- Decrement counter
                             pulse_counter <= pulse_counter - 1;
@@ -113,15 +120,17 @@ begin
                     when COOL_DOWN =>
                         -- Wait for cooldown period
                         if cooldown_counter >= unsigned(cooldown_period) then
-                            -- Auto-arm logic - if auto_arm is enabled, go directly to ARMED
+                            -- Cooldown complete
                             if probe_auto_arm = '1' then
+                                -- Auto-arm: go directly to ARMED
                                 current_state <= ARMED;
-                                status_reg <= set_probe_status_bit(status_reg, 0, '1');  -- Set bit 0 when entering ARMED
-                                status_reg <= set_probe_status_bit(status_reg, 3, '0');  -- Clear bit 3 when leaving COOL_DOWN
+                                -- Update status register
+                                status_reg <= "0000000000000001";  -- Only bit 0 set (ARMED)
                             else
                                 -- Normal behavior: go to IDLE
                                 current_state <= IDLE;
-                                status_reg <= set_probe_status_bit(status_reg, 3, '0');  -- Clear bit 3 when leaving COOL_DOWN
+                                -- Update status register
+                                status_reg <= "0000000000000000";  -- All bits clear (IDLE)
                             end if;
                         else
                             cooldown_counter <= cooldown_counter + 1;
@@ -129,6 +138,7 @@ begin
                         
                     when others =>
                         current_state <= IDLE;
+                        status_reg <= (others => '0');
                 end case;
                 
                 -- Update general counter when enabled
@@ -140,7 +150,7 @@ begin
     end process state_machine;
     
     -- =============================================================================
-    -- OUTPUT LOGIC - Combinational output assignments
+    -- OUTPUT LOGIC - Combinational output assignments based on current state
     -- =============================================================================
     -- Trigger output: active only during FIRING state
     probe_trigger_output <= PROBE_TRIGGER_THRESHOLD when current_state = FIRING else (others => '0');
