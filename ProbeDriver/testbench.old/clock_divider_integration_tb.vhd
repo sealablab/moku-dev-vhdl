@@ -13,31 +13,7 @@ end entity clock_divider_integration_tb;
 
 architecture testbench of clock_divider_integration_tb is
     -- Component declarations
-    component clk_divider is
-        port (
-            clk_in      : in  std_logic;
-            reset       : in  std_logic;
-            divider_sel : in  std_logic_vector(3 downto 0);
-            clk_en      : out std_logic
-        );
-    end component;
     
-    component probe_driver is
-        port (
-            clk            : in  std_logic;
-            clk_en         : in  std_logic;
-            reset          : in  std_logic;
-            enable         : in  std_logic;
-            trig_in        : in  std_logic;
-            auto_arm       : in  std_logic;
-            Intensity_index   : in  std_logic_vector(6 downto 0);
-            PulseDuration_in  : in  std_logic_vector(15 downto 0);
-            CoolDown_in       : in  std_logic_vector(15 downto 0);
-            trig_out          : out signed(15 downto 0);
-            intensity_out     : out signed(15 downto 0);
-            status_register   : out std_logic_vector(15 downto 0)
-        );
-    end component;
     
     -- Test signals
     signal clk            : std_logic := '0';
@@ -72,7 +48,7 @@ begin
     clk <= not clk after CLK_PERIOD / 2;
     
     -- Clock divider instantiation
-    u_clk_divider: clk_divider
+    u_clk_divider: entity work.clock_divider
         port map (
             clk_in      => clk,
             reset       => reset,
@@ -81,7 +57,7 @@ begin
         );
     
     -- ProbeDriver instantiation
-    u_probe_driver: probe_driver
+    u_probe_driver: entity work.probe_driver_core
         port map (
             clk            => clk,
             clk_en         => clk_en,
