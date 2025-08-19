@@ -1,51 +1,58 @@
-### VHDL / GHDL Build Artifacts
+# VHDL Build Artifacts
 *.o
 *.cf
-work-obj93.cf
-work-obj08.cf
-work-obj87.cf
 *.vcd
+work-obj*.cf
+
+# Testbench Executables
+*_tb
+*_test
+*test*
+
+# Backup and Archive Files
+*.tar
+*.tar.gz
+*.tar.bz2
+*.zip
+
+# GHDL Specific
 *.ghw
-*.fst
-*.lxt
 *.vst
-*.vcd.gz
-*.ghw.gz
-*.fst.gz
-*.lxt.gz
-*.vst.gz
+*.fst
 
-# GHDL specific
-ghdl_work/
-work/
+# Simulation Files
+*.wlf
+*.log
+*.txt
 
-### Editor and IDE Files
+# IDE and Editor Files
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
+
+# OS Generated Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-### Compiled Executables
-probedriver_tb
-simple_tb
-*_tb
-
-### Temporary and Backup Files
+# Temporary Files
 *.tmp
+*.temp
 *.bak
 *.backup
-*.orig
 
-### Log Files
-*.log
-*.out
+# Build Directories (if any)
+build/
+dist/
+target/
 
-### Platform-specific
-.vscode/
-.idea/
-*.user
-*.suo
-*.sdf
-*.jou
+# Documentation Build Artifacts
+docs/_build/
+docs/build/
 
