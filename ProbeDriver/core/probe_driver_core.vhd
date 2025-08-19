@@ -7,7 +7,6 @@ library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
 use work.probe_driver_pkg.all;
-use work.IntensityLut_pkg.all;
 
 entity probe_driver_core is
     port (
@@ -172,8 +171,8 @@ begin
     -- Trigger output: active only during FIRING state
     probe_trigger_output <= PROBE_TRIGGER_THRESHOLD when current_state = FIRING else (others => '0');
     
-    -- Intensity output: from LUT during FIRING state
-    probe_intensity_output <= IntensityLut(to_integer(unsigned(intensity_index))) when current_state = FIRING else (others => '0');
+    -- Intensity output: simple mapping during FIRING state (0-100 maps to 0-16383)
+    probe_intensity_output <= to_signed(to_integer(unsigned(intensity_index)) * 164, 16) when current_state = FIRING else (others => '0');
     
     -- Status register output
     probe_status_register <= status_reg;
