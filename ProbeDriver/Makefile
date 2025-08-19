@@ -8,7 +8,7 @@ GHDL_FLAGS = --std=08 --ieee=synopsys
 
 # Source files in dependency order (REFACTORED: Consolidated architecture)
 # Note: CustomWrapper.vhd provides the entity declaration that ProbeDriver.vhd implements
-SOURCES = ../clk-divider/clk_divider.vhd common/intensity_lut_pkg.vhd common/probe_driver_pkg.vhd core/probe_driver_core.vhd ../MokuModules/CustomWrapper.vhd ProbeDriver.vhd
+SOURCES = ../common/clock_divider.vhd common/intensity_lut_pkg.vhd common/probe_driver_pkg.vhd core/probe_driver_core.vhd ../MokuModules/CustomWrapper.vhd ProbeDriver.vhd
 
 # Default target
 all: build
