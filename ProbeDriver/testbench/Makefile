@@ -1,19 +1,17 @@
-# Makefile for ProbeDriver Integration Testing
-# Supports both individual component tests and comprehensive integration tests
+# Makefile for ProbeDriver Human Interface Testbenches
+# Restored from testbench.old/ during cleanup recovery
 # 
-# This Makefile demonstrates the GHDL workflow for our modular architecture:
-# 1. Analyze (compile) the design files in dependency order
-# 2. Elaborate (link) the testbench
-# 3. Run the simulation
-# 4. View waveforms (optional)
+# This Makefile provides easy access to the human-interface testbench code
+# that was accidentally removed during recent cleanup operations.
 
 # GHDL command (adjust path if needed)
 GHDL := ghdl
 
-# Target testbenches
+# Target testbenches (restored from testbench.old/)
 CORE_TB := probe_driver_core_tb
 WRAPPER_TB := probe_driver_wrapper_tb
-INTEGRATION_TB := comprehensive_top_level_tb
+HUMAN_TB := jc_CustomWrapper_top_tb
+HIGH_LEVEL_TB := CustomWrapper_top_tb
 
 # Source files (in dependency order for modular architecture)
 SOURCES := \
@@ -23,11 +21,66 @@ SOURCES := \
 	../core/probe_driver_core.vhd \
 	../wrapper/probe_driver_wrapper.vhd
 
-# Default target
-all: integration_test
+# Default target - show available options
+all: help
 
 # =============================================================================
-# INDIVIDUAL COMPONENT TESTS
+# HUMAN INTERFACE TESTBENCH (RESTORED FROM CLEANUP)
+# =============================================================================
+
+# Test the human-interface focused testbench by "jc"
+human_test: analyze_human elaborate_human run_human
+
+analyze_human: ../common/intensity_lut_pkg.vhd ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd ../wrapper/probe_driver_wrapper.vhd ../../clk-divider/clk_divider.vhd
+	@echo "=== Analyzing files for human interface testbench ==="
+	$(GHDL) -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
+	$(GHDL) -a --std=08 --work=work ../common/intensity_lut_pkg.vhd
+	$(GHDL) -a --std=08 --work=work ../common/probe_driver_pkg.vhd
+	$(GHDL) -a --std=08 --work=work ../core/probe_driver_core.vhd
+	$(GHDL) -a --std=08 --work=work ../wrapper/probe_driver_wrapper.vhd
+	$(GHDL) -a --std=08 --work=work HumanInterface_pkg.vhd
+	$(GHDL) -a --std=08 --work=work $(HUMAN_TB).vhd
+	@echo "=== Human interface analysis complete ==="
+
+elaborate_human: analyze_human
+	@echo "=== Elaborating human interface testbench ==="
+	$(GHDL) -e --std=08 --work=work $(HUMAN_TB)
+	@echo "=== Human interface elaboration complete ==="
+
+run_human: elaborate_human
+	@echo "=== Running human interface testbench ==="
+	$(GHDL) -r --std=08 --work=work $(HUMAN_TB) --stop-time=100us --vcd=human_test.vcd
+	@echo "=== Human interface test complete ==="
+
+# =============================================================================
+# HIGH-LEVEL TESTBENCH (RESTORED FROM CLEANUP)
+# =============================================================================
+
+# Test the high-level CustomWrapper testbench
+high_level_test: analyze_high_level elaborate_high_level run_high_level
+
+analyze_high_level: ../common/intensity_lut_pkg.vhd ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd ../wrapper/probe_driver_wrapper.vhd ../../clk-divider/clk_divider.vhd
+	@echo "=== Analyzing files for high-level testbench ==="
+	$(GHDL) -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
+	$(GHDL) -a --std=08 --work=work ../common/intensity_lut_pkg.vhd
+	$(GHDL) -a --std=08 --work=work ../common/probe_driver_pkg.vhd
+	$(GHDL) -a --std=08 --work=work ../core/probe_driver_core.vhd
+	$(GHDL) -a --std=08 --work=work ../wrapper/probe_driver_wrapper.vhd
+	$(GHDL) -a --std=08 --work=work $(HIGH_LEVEL_TB).vhd
+	@echo "=== High-level analysis complete ==="
+
+elaborate_high_level: analyze_high_level
+	@echo "=== Elaborating high-level testbench ==="
+	$(GHDL) -e --std=08 --work=work $(HIGH_LEVEL_TB)
+	@echo "=== High-level elaboration complete ==="
+
+run_high_level: elaborate_high_level
+	@echo "=== Running high-level testbench ==="
+	$(GHDL) -r --std=08 --work=work $(HIGH_LEVEL_TB) --stop-time=100us --vcd=high_level_test.vcd
+	@echo "=== High-level test complete ==="
+
+# =============================================================================
+# CORE COMPONENT TESTS (RESTORED FROM CLEANUP)
 # =============================================================================
 
 # Test core component only
@@ -75,45 +128,31 @@ run_wrapper: elaborate_wrapper
 	@echo "=== Wrapper test complete ==="
 
 # =============================================================================
-# COMPREHENSIVE INTEGRATION TEST
+# COMPREHENSIVE TESTING
 # =============================================================================
 
-# Full system integration test
-integration_test: analyze_integration elaborate_integration run_integration
-
-analyze_integration: $(SOURCES)
-	@echo "=== Analyzing all integration test files ==="
-	$(GHDL) -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
-	$(GHDL) -a --std=08 --work=work ../common/intensity_lut_pkg.vhd
-	$(GHDL) -a --std=08 --work=work ../common/probe_driver_pkg.vhd
-	$(GHDL) -a --std=08 --work=work ../core/probe_driver_core.vhd
-	$(GHDL) -a --std=08 --work=work ../wrapper/probe_driver_wrapper.vhd
-	$(GHDL) -a --std=08 --work=work $(INTEGRATION_TB).vhd
-	@echo "=== Integration analysis complete ==="
-
-elaborate_integration: analyze_integration
-	@echo "=== Elaborating integration testbench ==="
-	$(GHDL) -e --std=08 --work=work $(INTEGRATION_TB)
-	@echo "=== Integration elaboration complete ==="
-
-run_integration: elaborate_integration
-	@echo "=== Running comprehensive integration test ==="
-	$(GHDL) -r --std=08 --work=work $(INTEGRATION_TB) --stop-time=100us --vcd=integration_test.vcd
-	@echo "=== Integration test complete ==="
+# Run all restored testbenches
+test_all: human_test high_level_test core_test wrapper_test
+	@echo "=== All restored testbenches completed successfully ==="
 
 # =============================================================================
 # WAVEFORM VIEWING
 # =============================================================================
 
-# View waveforms for integration test
-wave: run_integration
-	@echo "=== Opening waveform viewer for integration test ==="
+# View waveforms for human interface test
+wave_human: run_human
+	@echo "=== Opening waveform viewer for human interface test ==="
 	@echo "Note: Install GTKWave to view waveforms:"
 	@echo "  macOS: brew install gtkwave"
 	@echo "  Ubuntu: sudo apt-get install gtkwave"
 	@echo "  Windows: Download from http://gtkwave.sourceforge.net/"
 	@echo ""
-	@echo "To view waveforms manually: gtkwave integration_test.vcd"
+	@echo "To view waveforms manually: gtkwave human_test.vcd"
+
+# View waveforms for high-level test
+wave_high_level: run_high_level
+	@echo "=== Opening waveform viewer for high-level test ==="
+	@echo "To view waveforms manually: gtkwave high_level_test.vcd"
 
 # =============================================================================
 # UTILITY TARGETS
@@ -127,25 +166,42 @@ clean:
 
 # Help target
 help:
-	@echo "Available targets:"
+	@echo "ProbeDriver Human Interface Testbenches - RESTORED FROM CLEANUP"
+	@echo "=================================================================="
 	@echo ""
-	@echo "INDIVIDUAL COMPONENT TESTS:"
-	@echo "  core_test     - Test core component only"
-	@echo "  wrapper_test  - Test wrapper component only"
+	@echo "AVAILABLE TARGETS:"
 	@echo ""
-	@echo "INTEGRATION TESTS:"
-	@echo "  integration_test - Full system integration test"
-	@echo "  wave            - Run integration test and show waveform info"
+	@echo "HUMAN INTERFACE TESTS (RESTORED):"
+	@echo "  human_test      - Test human-interface focused testbench by 'jc'"
+	@echo "  wave_human      - Run human test and show waveform info"
+	@echo ""
+	@echo "HIGH-LEVEL TESTS (RESTORED):"
+	@echo "  high_level_test - Test high-level CustomWrapper testbench"
+	@echo "  wave_high_level - Run high-level test and show waveform info"
+	@echo ""
+	@echo "COMPONENT TESTS (RESTORED):"
+	@echo "  core_test       - Test core component only"
+	@echo "  wrapper_test    - Test wrapper component only"
+	@echo ""
+	@echo "COMPREHENSIVE:"
+	@echo "  test_all        - Run all restored testbenches"
 	@echo ""
 	@echo "UTILITY:"
-	@echo "  clean          - Remove generated files"
-	@echo "  help           - Show this help message"
+	@echo "  clean           - Remove generated files"
+	@echo "  help            - Show this help message"
 	@echo ""
-	@echo "Typical workflow for Iteration 2: make integration_test"
-	@echo "For waveforms: make wave"
+	@echo "RECOMMENDED WORKFLOW:"
+	@echo "  make human_test    # Start with human-interface testbench"
+	@echo "  make wave_human    # View waveforms if needed"
+	@echo "  make test_all      # Run all tests for comprehensive validation"
+	@echo ""
+	@echo "Note: These testbenches were restored from testbench.old/ after"
+	@echo "being accidentally removed during recent cleanup operations."
 
 # Phony targets
-.PHONY: all core_test wrapper_test integration_test wave clean help
+.PHONY: all help human_test high_level_test core_test wrapper_test test_all
+.PHONY: analyze_human elaborate_human run_human
+.PHONY: analyze_high_level elaborate_high_level run_high_level
 .PHONY: analyze_core elaborate_core run_core
 .PHONY: analyze_wrapper elaborate_wrapper run_wrapper
-.PHONY: analyze_integration elaborate_integration run_integration
+.PHONY: wave_human wave_high_level clean
