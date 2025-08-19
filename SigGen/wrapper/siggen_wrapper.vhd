@@ -46,29 +46,6 @@ architecture rtl of siggen_wrapper is
     -- =============================================================================
     -- COMPONENT INSTANTIATION
     -- =============================================================================
-    component siggen_core is
-        port (
-            -- Clock and Control
-            clk                    : in  std_logic;
-            reset                  : in  std_logic;
-            enable                 : in  std_logic;
-            
-            -- Global Configuration
-            global_config          : in  global_config_type;
-            
-            -- Output Configurations
-            output_a_config        : in  output_config_type;
-            output_b_config        : in  output_config_type;
-            output_c_config        : in  output_config_type;
-            output_d_config        : in  output_config_type;
-            
-            -- Output Signals
-            output_a               : out signed(15 downto 0);
-            output_b               : out signed(15 downto 0);
-            output_c               : out signed(15 downto 0);
-            output_d               : out signed(15 downto 0)
-        );
-    end component;
     
 begin
     -- =============================================================================
@@ -98,7 +75,7 @@ begin
     -- =============================================================================
     -- CORE INSTANTIATION
     -- =============================================================================
-    siggen_core_inst : siggen_core
+    siggen_core_inst : entity work.siggen_core
         port map (
             -- Clock and Control
             clk                    => clk,

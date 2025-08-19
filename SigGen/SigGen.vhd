@@ -14,26 +14,6 @@ architecture Behavioural of CustomWrapper is
     -- =============================================================================
     -- COMPONENT INSTANTIATION
     -- =============================================================================
-    component siggen_wrapper is
-        port (
-            -- Clock and Reset
-            clk        : in  std_logic;
-            reset      : in  std_logic;
-            
-            -- Control Registers
-            control0   : in  std_logic_vector(31 downto 0);
-            control1   : in  std_logic_vector(31 downto 0);
-            control2   : in  std_logic_vector(31 downto 0);
-            control3   : in  std_logic_vector(31 downto 0);
-            control4   : in  std_logic_vector(31 downto 0);
-            
-            -- Output Signals
-            output_a   : out signed(15 downto 0);
-            output_b   : out signed(15 downto 0);
-            output_c   : out signed(15 downto 0);
-            output_d   : out signed(15 downto 0)
-        );
-    end component;
     
     -- =============================================================================
     -- INTERNAL SIGNALS
@@ -48,7 +28,7 @@ begin
     -- =============================================================================
     -- SIGGEN WRAPPER INSTANTIATION
     -- =============================================================================
-    siggen_wrapper_inst : siggen_wrapper
+    siggen_wrapper_inst : entity work.siggen_wrapper
         port map (
             -- Clock and Reset
             clk        => Clk,
