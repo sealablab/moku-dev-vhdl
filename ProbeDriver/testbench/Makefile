@@ -17,15 +17,11 @@ INTEGRATION_TB := comprehensive_top_level_tb
 
 # Source files (in dependency order for modular architecture)
 SOURCES := \
+	../../clk-divider/clk_divider.vhd \
+	../common/intensity_lut_pkg.vhd \
 	../common/probe_driver_pkg.vhd \
 	../core/probe_driver_core.vhd \
-	../wrapper/probe_driver_wrapper.vhd \
-	../ProbeConfig.vhd \
-	../IntensityLut.vhd \
-	../../clk-divider/clk_divider.vhd \
-	../ProbeDriver.vhd \
-	../CustomWrapper.vhd \
-	../top_probe_driver.vhd
+	../wrapper/probe_driver_wrapper.vhd
 
 # Default target
 all: integration_test
@@ -37,8 +33,9 @@ all: integration_test
 # Test core component only
 core_test: analyze_core elaborate_core run_core
 
-analyze_core: ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd
+analyze_core: ../common/intensity_lut_pkg.vhd ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd
 	@echo "=== Analyzing core component files ==="
+	$(GHDL) -a --std=08 --work=work ../common/intensity_lut_pkg.vhd
 	$(GHDL) -a --std=08 --work=work ../common/probe_driver_pkg.vhd
 	$(GHDL) -a --std=08 --work=work ../core/probe_driver_core.vhd
 	$(GHDL) -a --std=08 --work=work $(CORE_TB).vhd
@@ -57,8 +54,9 @@ run_core: elaborate_core
 # Test wrapper component only
 wrapper_test: analyze_wrapper elaborate_wrapper run_wrapper
 
-analyze_wrapper: ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd ../wrapper/probe_driver_wrapper.vhd ../../clk-divider/clk_divider.vhd
+analyze_wrapper: ../common/intensity_lut_pkg.vhd ../common/probe_driver_pkg.vhd ../core/probe_driver_core.vhd ../wrapper/probe_driver_wrapper.vhd ../../clk-divider/clk_divider.vhd
 	@echo "=== Analyzing wrapper component files ==="
+	$(GHDL) -a --std=08 --work=work ../common/intensity_lut_pkg.vhd
 	$(GHDL) -a --std=08 --work=work ../common/probe_driver_pkg.vhd
 	$(GHDL) -a --std=08 --work=work ../core/probe_driver_core.vhd
 	$(GHDL) -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
@@ -85,15 +83,11 @@ integration_test: analyze_integration elaborate_integration run_integration
 
 analyze_integration: $(SOURCES)
 	@echo "=== Analyzing all integration test files ==="
+	$(GHDL) -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
+	$(GHDL) -a --std=08 --work=work ../common/intensity_lut_pkg.vhd
 	$(GHDL) -a --std=08 --work=work ../common/probe_driver_pkg.vhd
 	$(GHDL) -a --std=08 --work=work ../core/probe_driver_core.vhd
 	$(GHDL) -a --std=08 --work=work ../wrapper/probe_driver_wrapper.vhd
-	$(GHDL) -a --std=08 --work=work ../ProbeConfig.vhd
-	$(GHDL) -a --std=08 --work=work ../IntensityLut.vhd
-	$(GHDL) -a --std=08 --work=work ../../clk-divider/clk_divider.vhd
-	$(GHDL) -a --std=08 --work=work ../ProbeDriver.vhd
-	$(GHDL) -a --std=08 --work=work ../CustomWrapper.vhd
-	$(GHDL) -a --std=08 --work=work ../top_probe_driver.vhd
 	$(GHDL) -a --std=08 --work=work $(INTEGRATION_TB).vhd
 	@echo "=== Integration analysis complete ==="
 
