@@ -1,0 +1,5 @@
+jc-Todo: 
+Let's spend some time making quality test-bench(es) for our ProbeDriver.
+
+Specifically, if we pin down the register layout we can probably re-use a lot of code.
+Also, we should start by creating some sort of pedagogical testbench that uses the status LED signals to simplify deveopment and design
