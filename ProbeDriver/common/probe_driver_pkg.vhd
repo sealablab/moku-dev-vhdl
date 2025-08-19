@@ -7,6 +7,7 @@
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Numeric_Std.all;
+use work.intensity_lut_pkg.all;
 
 package probe_driver_pkg is
     -- =============================================================================
@@ -54,6 +55,9 @@ package probe_driver_pkg is
     function get_safe_intensity_index(intensity_in : probe_intensity_index_type) return probe_intensity_index_type;
     function get_safe_duration(duration_in : probe_duration_type) return probe_duration_type;
     function get_safe_cooldown(cooldown_in : probe_cooldown_type) return probe_cooldown_type;
+    
+    -- Intensity lookup functions
+    function get_intensity_output(index : probe_intensity_index_type) return signed;
     
 end package probe_driver_pkg;
 
@@ -133,6 +137,12 @@ package body probe_driver_pkg is
         else
             return cooldown_in;
         end if;
+    end function;
+    
+    -- Intensity lookup function using the lookup table
+    function get_intensity_output(index : probe_intensity_index_type) return signed is
+    begin
+        return get_intensity_value_safe(index);
     end function;
     
 end package body;

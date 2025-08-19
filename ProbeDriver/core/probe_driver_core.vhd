@@ -171,8 +171,8 @@ begin
     -- Trigger output: active only during FIRING state
     probe_trigger_output <= PROBE_TRIGGER_THRESHOLD when current_state = FIRING else (others => '0');
     
-    -- Intensity output: simple mapping during FIRING state (0-100 maps to 0-16383)
-    probe_intensity_output <= to_signed(to_integer(unsigned(intensity_index)) * 164, 16) when current_state = FIRING else (others => '0');
+    -- Intensity output: lookup table mapping during FIRING state (0-100 maps to precise voltage values)
+    probe_intensity_output <= get_intensity_output(intensity_index) when current_state = FIRING else (others => '0');
     
     -- Status register output
     probe_status_register <= status_reg;

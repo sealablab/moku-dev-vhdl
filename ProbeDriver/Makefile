@@ -5,8 +5,8 @@
 GHDL = ghdl
 GHDL_FLAGS = --std=08 --ieee=synopsys
 
-# Source files in dependency order
-SOURCES = IntensityLut.vhd ProbeConfig.vhd ../clk-divider/clk_divider.vhd ProbeDriver.vhd CustomWrapper.vhd top_probe_driver.vhd
+# Source files in dependency order (REFACTORED: New 3-tier architecture)
+SOURCES = ../clk-divider/clk_divider.vhd common/intensity_lut_pkg.vhd common/probe_driver_pkg.vhd core/probe_driver_core.vhd ProbeDriver_Top.vhd
 
 # Target for syntax checking
 syntax_check: $(SOURCES)
@@ -60,6 +60,13 @@ help:
 	@echo "  check_top     - Check only the top-level file"
 	@echo "  clean         - Remove generated files"
 	@echo "  help          - Show this help message"
+	@echo ""
+	@echo "REFACTORED: New 3-tier architecture"
+	@echo "  - Clock divider module"
+	@echo "  - Intensity lookup table package"
+	@echo "  - Probe driver package"
+	@echo "  - Core state machine"
+	@echo "  - Top-level CustomWrapper interface"
 	@echo ""
 	@echo "Usage examples:"
 	@echo "  make                    # Check all files"
