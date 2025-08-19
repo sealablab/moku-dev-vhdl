@@ -68,7 +68,8 @@ architecture Behavioural of CustomWrapper is
     signal global_enable : std_logic;
     signal auto_arm : std_logic;
     signal clock_divider_sel : std_logic_vector(3 downto 0);
-    signal soft_trigger : std_logic;
+    signal soft_trigger_raw : std_logic;  -- Raw from control register
+    signal soft_trigger : std_logic;      -- Processed (auto-de-asserted)
     signal intensity_index : std_logic_vector(6 downto 0);
     signal pulse_duration : std_logic_vector(15 downto 0);
     signal cooldown_period : std_logic_vector(15 downto 0);
@@ -82,7 +83,7 @@ begin
     global_enable <= Control0(31);
     auto_arm <= Control0(30);
     clock_divider_sel <= Control0(27 downto 24);
-    soft_trigger <= Control0(23);
+    soft_trigger_raw <= Control0(23);  -- Raw control register bit (auto-de-asserted after 1 cycle)
     intensity_index <= Control0(22 downto 16);
     pulse_duration <= Control0(15 downto 0);
     
@@ -127,6 +128,28 @@ begin
             end if;
         end if;
     end process led_status_process;
+    
+    -- =============================================================================
+    -- SOFT TRIGGER DE-ASSERTION PROCESS
+    -- =============================================================================
+    -- Automatically de-assert soft trigger after one clock cycle to prevent
+    -- multiple probe firings from a single control register write
+    soft_trigger_process: process(Clk)
+    begin
+        if rising_edge(Clk) then
+            if Reset = '1' then
+                soft_trigger <= '0';
+            else
+                -- Set trigger high when control register goes high
+                if soft_trigger_raw = '1' then
+                    soft_trigger <= '1';
+                else
+                    -- De-assert after one cycle (unless control register is still high)
+                    soft_trigger <= '0';
+                end if;
+            end if;
+        end if;
+    end process soft_trigger_process;
     
     -- =============================================================================
     -- CLOCK DIVIDER INSTANTIATION
