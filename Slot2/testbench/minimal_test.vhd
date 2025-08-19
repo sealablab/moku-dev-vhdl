@@ -7,44 +7,17 @@ use IEEE.Numeric_Std.all;
 use IEEE.Std_Logic_TextIO.all;
 use STD.TextIO.all;
 
+-- NEW APPROACH: Include the standardized package instead of duplicating component declarations
+use work.MokuModules_pkg.all;
+
 entity minimal_test is
 end entity minimal_test;
 
 architecture testbench of minimal_test is
-    -- Clock period definition
-    constant CLK_PERIOD : time := 10 ns;  -- 100MHz clock
+    -- Clock period definition - using standardized constant from package
+    constant CLK_PERIOD : time := MOKULAB_CLK_PERIOD;  -- 10ns from package
     
-    -- Component declaration for the unit under test
-    component CustomWrapper is
-        port (
-            Clk : in std_logic;
-            Reset : in std_logic;
-            InputA : in signed(15 downto 0);
-            InputB : in signed(15 downto 0);
-            InputC : in signed(15 downto 0);
-            InputD : in signed(15 downto 0);
-            OutputA : out signed(15 downto 0);
-            OutputB : out signed(15 downto 0);
-            OutputC : out signed(15 downto 0);
-            OutputD : out signed(15 downto 0);
-            Control0 : in std_logic_vector(31 downto 0);
-            Control1 : in std_logic_vector(31 downto 0);
-            Control2 : in std_logic_vector(31 downto 0);
-            Control3 : in std_logic_vector(31 downto 0);
-            Control4 : in std_logic_vector(31 downto 0);
-            Control5 : in std_logic_vector(31 downto 0);
-            Control6 : in std_logic_vector(31 downto 0);
-            Control7 : in std_logic_vector(31 downto 0);
-            Control8 : in std_logic_vector(31 downto 0);
-            Control9 : in std_logic_vector(31 downto 0);
-            Control10 : in std_logic_vector(31 downto 0);
-            Control11 : in std_logic_vector(31 downto 0);
-            Control12 : in std_logic_vector(31 downto 0);
-            Control13 : in std_logic_vector(31 downto 0);
-            Control14 : in std_logic_vector(31 downto 0);
-            Control15 : in std_logic_vector(31 downto 0)
-        );
-    end component;
+    -- NEW APPROACH: No component declaration needed - it's in the MokuModules package!
     
     -- Signal declarations
     signal clk : std_logic := '0';
