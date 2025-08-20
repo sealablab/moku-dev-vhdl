@@ -41,8 +41,7 @@ clock_divider_inst : clock_divider
     );
 ```
 
-**File**: `clock_divider.vhd`  
-**Documentation**: `README-ClockDivider.md` (detailed usage and migration guide)
+**File**: `clock_divider.vhd`
 
 ---
 
@@ -113,7 +112,6 @@ Common components should have minimal dependencies:
 ```
 common/
 ├── README.md                    # This file - overview of all components
-├── README-ClockDivider.md      # Detailed clock divider documentation
 ├── clock_divider.vhd           # Unified clock divider component
 └── percent_lut_pkg.vhd        # Generic percentage LUT package
 ```
