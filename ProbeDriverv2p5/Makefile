@@ -6,9 +6,9 @@
 GHDL = ghdl
 GHDL_FLAGS = --std=08 --ieee=synopsys
 
-# Source files in dependency order (REFACTORED: Now includes shared packages)
+# Source files in dependency order (REFACTORED: Now includes common packages)
 # Note: CustomWrapper.vhd provides the entity declaration that ProbeDriver.vhd implements
-SOURCES = ../shared/percent_lut_pkg.vhd ../common/clock_divider.vhd common/intensity_lut_pkg.vhd common/probe_driver_pkg.vhd core/probe_driver_core.vhd ../MokuModules/CustomWrapper.vhd ProbeDriver.vhd
+SOURCES = ../common/percent_lut_pkg.vhd ../common/clock_divider.vhd common/intensity_lut_pkg.vhd common/probe_driver_pkg.vhd core/probe_driver_core.vhd ../MokuModules/CustomWrapper.vhd ProbeDriver.vhd
 
 # Default target
 all: build
@@ -38,20 +38,20 @@ syntax_check: build
 # Check syntax of individual files
 check_package:
 	@echo "Checking package syntax..."
-	$(GHDL) -a $(GHDL_FLAGS) ../shared/percent_lut_pkg.vhd
+	$(GHDL) -a $(GHDL_FLAGS) ../common/percent_lut_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) common/intensity_lut_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) common/probe_driver_pkg.vhd
 
 check_main:
 	@echo "Checking main file syntax..."
-	$(GHDL) -a $(GHDL_FLAGS) ../shared/percent_lut_pkg.vhd
+	$(GHDL) -a $(GHDL_FLAGS) ../common/percent_lut_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) common/intensity_lut_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) common/probe_driver_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) core/probe_driver_core.vhd
 
 check_top:
 	@echo "Checking top-level file syntax..."
-	$(GHDL) -a $(GHDL_FLAGS) ../shared/percent_lut_pkg.vhd
+	$(GHDL) -a $(GHDL_FLAGS) ../common/percent_lut_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) common/intensity_lut_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) common/probe_driver_pkg.vhd
 	$(GHDL) -a $(GHDL_FLAGS) core/probe_driver_core.vhd
@@ -76,12 +76,12 @@ help:
 	@echo "  clean         - Remove generated files"
 	@echo "  help          - Show this help message"
 	@echo ""
-	@echo "REFACTORED: Now uses latest requirements and shared packages!"
-	@echo "  - Shared percent_lut_pkg for consistent type definitions"
+	@echo "REFACTORED: Now uses latest requirements and common packages!"
+	@echo "  - Common percent_lut_pkg for consistent type definitions"
 	@echo "  - Record-based Status Register records"
 	@echo "  - Hybrid approach: VHDL enumerated types + Status Register records"
 	@echo "  - Clock divider module"
-	@echo "  - Intensity lookup table package (using shared types)"
+	@echo "  - Intensity lookup table package (using common types)"
 	@echo "  - Probe driver package (latest requirements)"
 	@echo "  - Core state machine (latest requirements)"
 	@echo "  - CustomWrapper.vhd (entity declaration from MokuModules)"
