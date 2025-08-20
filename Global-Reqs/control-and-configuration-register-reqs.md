@@ -1,8 +1,10 @@
-# Control and Configuration Register Requirements
+# Control, Configuration, and Status Register Requirements
 
 ## Overview
 
-This document defines the requirements for distinguishing between **Control** and **Configuration** registers in the ProbeDriver module and other VHDL modules. This distinction is critical for proper module design and state management.
+This document defines the requirements for distinguishing between **Control**, **Configuration**, and **Status** registers in VHDL modules. This distinction is critical for proper module design and state management. All three register types must use VHDL records for better organization and type safety, and all three must receive equal documentation and implementation attention.
+
+**Key Principle**: Control, Configuration, and Status registers are equally important and must be treated with equal visibility, documentation, and implementation detail.
 
 ## Register Categories
 
@@ -26,6 +28,7 @@ This document defines the requirements for distinguishing between **Control** an
 - Must be connected directly to control logic without intermediate storage
 - Should include appropriate synchronization for cross-clock domain writes
 - Must handle write attempts during invalid states gracefully
+- **Must be defined using VHDL records**
 
 ### Configuration Registers
 
@@ -48,6 +51,88 @@ This document defines the requirements for distinguishing between **Control** an
 - Must include module-specific validation logic in reset process
 - Should provide clear error indication for invalid configuration values
 - Values must be stable throughout normal operation
+- **Must be defined using VHDL records**
+
+### Status Registers
+
+**Purpose**: Provide read-only information about the current state and operation of the module.
+
+**Characteristics**:
+- **Read-Only**: Cannot be written by external interfaces
+- **Real-Time Updates**: Values change automatically based on module operation
+- **State Indicators**: Reflect the current operational state
+- **Error Reporting**: Indicate error conditions and operational status
+
+**Examples**:
+- Module operational state (IDLE, ARMED, FIRING, COOL_DOWN)
+- Error flags and error codes
+- Operation completion indicators
+- Resource availability status
+
+**Implementation Requirements**:
+- Must be read-only (write attempts ignored)
+- Must update automatically based on internal module state
+- Should provide clear, meaningful status information
+- Must be defined using VHDL records
+- Should include error reporting capabilities
+
+## Equal Treatment Requirement
+
+**All three register types (Control, Configuration, and Status) must receive equal treatment in terms of:**
+
+### Documentation
+- **Equal visibility** in module documentation
+- **Equal detail** in specification and examples
+- **Equal prominence** in interface descriptions
+- **Equal attention** in design reviews
+
+### Implementation
+- **Equal effort** in design and development
+- **Equal testing** coverage and validation
+- **Equal error handling** and edge case consideration
+- **Equal maintenance** and updates
+
+### Interface Design
+- **Equal access** through module interfaces
+- **Equal validation** of data integrity
+- **Equal error reporting** for invalid states
+- **Equal documentation** of behavior and timing
+
+### Examples of Equal Treatment
+```vhdl
+-- All three register types must have complete record definitions
+type control_register_t is record
+    global_enable : std_logic;
+    auto_arm      : std_logic;
+    soft_trigger  : std_logic;
+    status_clear  : std_logic;
+end record;
+
+type configuration_register_t is record
+    clock_divider : std_logic_vector(15 downto 0);
+    intensity     : std_logic_vector(7 downto 0);
+    duration      : std_logic_vector(15 downto 0);
+    cooldown      : std_logic_vector(15 downto 0);
+end record;
+
+type status_register_t is record
+    armed         : std_logic;
+    firing        : std_logic;
+    cooldown      : std_logic;
+    error         : std_logic;
+    ready         : std_logic;
+end record;
+
+-- All three must have default functions
+function get_default_control_register return control_register_t;
+function get_default_configuration_register return configuration_register_t;
+function get_default_status_register return status_register_t;
+
+-- All three must have validation functions
+function is_valid_control_register(ctrl : control_register_t) return boolean;
+function is_valid_configuration_register(cfg : configuration_register_t) return boolean;
+function is_valid_status_register(status : status_register_t) return boolean;
+```
 
 ## Key Principles
 
@@ -61,7 +146,7 @@ This document defines the requirements for distinguishing between **Control** an
 - Promotes modular design and reduces coupling
 
 **Implementation**:
-- Each module defines its own control register interface
+- Each module defines its own control register interface using records
 - Control register exposure is determined by the module's role in the hierarchy
 - No hardcoded assumptions about register naming or availability
 
@@ -81,7 +166,7 @@ This document defines the requirements for distinguishing between **Control** an
 
 ### 3. State Separation
 
-**Requirement**: Control and configuration registers must be clearly separated in both design and documentation.
+**Requirement**: Control, configuration, and status registers must be clearly separated in both design and documentation.
 
 **Rationale**:
 - Prevents confusion about register purpose and behavior
@@ -89,28 +174,41 @@ This document defines the requirements for distinguishing between **Control** an
 - Facilitates proper module integration
 
 **Implementation**:
-- Separate register definitions for control vs. configuration
-- Clear naming conventions (e.g., `CTRL_*` vs. `CFG_*`)
+- Separate record definitions for control vs. configuration vs. status
+- Clear naming conventions (e.g., `CTRL_*`, `CFG_*`, `STATUS_*`)
 - Documentation must clearly indicate register category
 
-## Examples
+## Record-Based Register Definitions
 
-### Control Register Definition
+### Control Register Record Example
 ```vhdl
--- Control register fields (immediate actions, runtime accessible)
-constant CTRL_GLOBAL_ENABLE     : natural := 31;
-constant CTRL_AUTO_ARM          : natural := 30;
-constant CTRL_STATUS_CLEAR      : natural := 28;
-constant CTRL_SOFT_TRIGGER      : natural := 23;
+type control_register_t is record
+    global_enable : std_logic;     -- Global enable/disable
+    auto_arm      : std_logic;     -- Auto-arm enable
+    soft_trigger  : std_logic;     -- Software trigger
+    status_clear  : std_logic;     -- Clear status flags
+end record;
 ```
 
-### Configuration Register Definition
+### Configuration Register Record Example
 ```vhdl
--- Configuration register fields (parameters, set during reset)
-constant CFG_CLOCK_DIV_MSB      : natural := 27;
-constant CFG_CLOCK_DIV_LSB      : natural := 24;
-constant CFG_INTENSITY_MSB      : natural := 22;
-constant CFG_INTENSITY_LSB      : natural := 16;
+type configuration_register_t is record
+    clock_divider : std_logic_vector(15 downto 0);  -- Clock division ratio
+    intensity     : std_logic_vector(7 downto 0);   -- Intensity level (0-255)
+    duration      : std_logic_vector(15 downto 0);  -- Pulse duration
+    cooldown      : std_logic_vector(15 downto 0);  -- Cooldown period
+end record;
+```
+
+### Status Register Record Example
+```vhdl
+type status_register_t is record
+    armed         : std_logic;     -- Module is armed
+    firing        : std_logic;     -- Module is currently firing
+    cooldown      : std_logic;     -- Module is in cooldown
+    error         : std_logic;     -- Error condition active
+    ready         : std_logic;     -- Module is ready for operation
+end record;
 ```
 
 ## Register Naming Convention Standards
@@ -167,6 +265,7 @@ Register definitions must be organized in the `common/` layer:
 - **Location**: `module_name/common/` directory
 - **Scope**: Module-specific register definitions only
 - **No duplication**: Each module defines its own registers
+- **Use records**: All register definitions must use VHDL records
 
 ## Standard Interface Requirements
 
@@ -195,25 +294,41 @@ All VHDL modules must implement the following interface signals in the specified
 
 ## Compliance Requirements
 
-1. **All modules** must clearly categorize their registers as either Control or Configuration
-2. **Configuration registers** must include validation logic in reset process
-3. **Control registers** must be directly connected to control logic
-4. **No module** may assume the existence of a standard `Control0` register
-5. **Documentation** must clearly indicate the category and behavior of each register
-6. **All modules** must implement the standard interface signal order
-7. **All modules** must operate on a single clock domain
+1. **All modules** must clearly categorize their registers as either Control, Configuration, or Status
+2. **All three register types** must receive equal documentation and implementation attention
+3. **Configuration registers** must include validation logic in reset process
+4. **Control registers** must be directly connected to control logic
+5. **Status registers** must be read-only and update automatically
+6. **No module** may assume the existence of a standard `Control0` register
+7. **Documentation** must clearly indicate the category and behavior of each register
+8. **All modules** must implement the standard interface signal order
+9. **All modules** must operate on a single clock domain
+10. **All register definitions** must use VHDL records
+11. **Prefer std_logic types** for better Verilog portability
+12. **Equal implementation effort** must be given to all three register types
+13. **Equal testing coverage** must be provided for all three register types
 
 ## Validation Checklist
 
-- [ ] All registers categorized as Control or Configuration
+- [ ] All registers categorized as Control, Configuration, or Status
+- [ ] **All three register types receive equal documentation attention**
+- [ ] **All three register types receive equal implementation effort**
 - [ ] Configuration registers include reset-time validation
 - [ ] Control registers directly drive control logic
+- [ ] Status registers are read-only and update automatically
+- [ ] **Status registers have complete field definitions and documentation**
+- [ ] **Status registers include proper error reporting capabilities**
 - [ ] No assumptions about standard control register names
 - [ ] Clear separation in register definitions
-- [ ] Documentation reflects register categories
+- [ ] Documentation reflects register categories equally
 - [ ] Error handling for invalid configurations
 - [ ] Proper synchronization for control register writes
 - [ ] MokuModules files properly referenced, never duplicated
+- [ ] All register definitions use VHDL records
+- [ ] Prefer std_logic types for better Verilog portability
+- [ ] **Equal testing coverage for all three register types**
+- [ ] **Equal error handling for all three register types**
+- [ ] **Equal maintenance procedures for all three register types**
 
 ## MokuModules Directory - Shared Resources
 
