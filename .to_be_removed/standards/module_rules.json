@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "dir_layout": {
+    "src_files": [
+      "{Name}.vhd",
+      "{Name}_Regs.vhd",
+      "{Name}_Core.vhd"
+    ],
+    "tb_files": [
+      "tb_{Name}.vhd"
+    ]
+  },
+  "required_entities": [
+    "{Name}_Core"
+  ],
+  "reset_policy": {
+    "reference": "standards.vhdl_style.reset"
+  },
+  "naming": {
+    "module_name_case": "PascalCase"
+  },
+  "cross_refs": {
+    "style_json": "standards/vhdl_style.json"
+  }
+}
