@@ -1,0 +1,29 @@
+version: 1
+vhdl_standard: "2008"
+file_extension: ".vhd"
+line_length: 120
+indent: 2
+naming:
+  entity: "^[A-Z][A-Za-z0-9_]*$"
+  architecture: "^(rtl|behave|tb)$"
+  signal: "^[a-z0-9_]+$"
+  constant: "^[A-Z0-9_]+$"
+clocking:
+  clock_name: "clk"
+  reset:
+    name: "rst_n"
+    active_low: true
+    synchronous: true
+  clk_enable:
+    name: "clk_en"
+    required: true
+packages_required:
+  - "ieee.std_logic_1164.all"
+  - "ieee.numeric_std.all"
+forbidden:
+  - "std_logic_arith"
+  - "std_logic_unsigned"
+testbench:
+  magic_strings:
+    pass: "ALL TESTS PASSED"
+    done: "SIMULATION DONE"
