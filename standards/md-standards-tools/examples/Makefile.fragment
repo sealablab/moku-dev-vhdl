@@ -1,0 +1,17 @@
+
+# Example generator Makefile fragment:
+#   make standards.mk
+# This will parse RULE tags from Markdown and emit a Make include.
+
+TOOLS_DIR := tools
+STD_MD    := moku-dev-vhdl/standards/vhdl_style.md moku-dev-vhdl/standards/module_rules.md
+
+standards.mk: $(STD_MD) $(TOOLS_DIR)/emit_make_vars.py $(TOOLS_DIR)/parse_rules.py
+	@echo "Generating $@ from $(STD_MD) ..."
+	@$(TOOLS_DIR)/emit_make_vars.py $(STD_MD) > $@
+	@echo "Wrote $@"
+
+.PHONY: check-style
+check-style: standards.mk
+	@# Use emitted vars: PACKAGES_REQUIRED, FORBIDDEN, etc.
+	@$(TOOLS_DIR)/lint_headers.sh standards.mk "moku-dev-vhdl/**/*.vhd" "moku-dev-vhdl/*.vhd" || (echo "Header/style checks failed" >&2; exit 1)
